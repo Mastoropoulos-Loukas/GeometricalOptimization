@@ -1,7 +1,9 @@
 #include <iostream>
 #include "shared.h"
 
-using std::cout, std::endl, std::string;
+using std::cout;
+using std::endl;
+using std::string;
 
 PointList getPointsFromFile(string filepath);
 
