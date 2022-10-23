@@ -1,0 +1,9 @@
+#ignore everything
+*
+
+#except
+!main.cpp
+!PolygonGenerator.h
+!README.md
+!docs/*
+!shared.h
