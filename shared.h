@@ -4,12 +4,15 @@
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/IO/WKT.h>
+#include <CGAL/convex_hull_2.h>
 #include <iostream>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef CGAL::Polygon_2<Kernel> Polygon_2;
 typedef CGAL::Point_2<Kernel> Point_2;
-typedef Point_2* PointList;
+typedef std::vector<Point_2> PointList;
+typedef std::vector<Point_2>::iterator PointListIterator;
+typedef Kernel::Segment_2 Segment_2;
 
 enum Algorithm {incremental, convex_hull, onion};
 enum EdgeSelection {randomSelection, min, max};

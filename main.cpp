@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include <string.h>
+#include "PolygonGenerator.h"
 #include "shared.h"
 
 using std::cout;
@@ -8,8 +10,26 @@ using std::endl;
 using std::string;
 using std::ifstream;
 
-PointList getPointsFromFile(string filepath, int& size);
+void getPointsFromFile(string filepath, int& size, PointList& points, int& convexHullArea);
 void handleArgs(ArgFlags& argFlags, int& argc, char**& argv);
+void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, int convexHullArea, std::chrono::milliseconds duration);
+string getAlgorithmString(ArgFlags argFlags);
+
+
+//Dummy class just pushes all point in order to the polygon
+class DummyGenerator: private PolygonGenerator{
+    
+public:
+    DummyGenerator(PointList& list): PolygonGenerator(list){};
+
+    Polygon_2 generatePolygon(){
+        Polygon_2 p;
+        for(PointListIterator iter = list.begin(); iter != list.end(); ++iter)
+            p.push_back(*iter);
+
+        return p;
+    };
+};
 
 int main(int argc, char **argv)
 {
@@ -24,9 +44,43 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    int size;
-    PointList list = getPointsFromFile(argFlags.inputFile, size);
-    //for(int i = 0; i < size; i++) cout << i << ": " << list[i] << endl;
+    //get input
+    int size, convexHullArea;
+    PointList list, result;
+    getPointsFromFile(argFlags.inputFile, size, list, convexHullArea);
+
+    //calculate convex hull
+    Polygon_2 p, chp;
+    DummyGenerator generator(list);
+
+    CGAL::convex_hull_2(list.begin(), list.end(), std::back_inserter(result));
+    for(auto it = result.begin(); it != result.end(); ++it) chp.push_back(*it);
+
+    //calculate polygon
+    auto start = std::chrono::high_resolution_clock::now();
+
+    p = generator.generatePolygon();
+    
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+    //write shapes
+    std::ofstream dump("polygon.wkt"), pointDump("points.wkt"), hullDump("hull.wkt");
+    CGAL::IO::write_polygon_WKT(
+        dump,
+        p
+    );
+    CGAL::IO::write_multi_point_WKT(
+        pointDump,
+        list
+    );
+    CGAL::IO::write_polygon_WKT(
+        hullDump,
+        chp
+    );
+
+    //write output
+    writePolygonToFile(argFlags.outputFile, p, argFlags, convexHullArea, duration);
 
     return 0;
 }
@@ -77,7 +131,12 @@ void handleArgs(ArgFlags& argFlags, int& argc, char**& argv)
                 waitingForArg = 0;
                 break;
             case 4:
-                argFlags.edgeSelection = static_cast<EdgeSelection>(atoi(arg)-1);
+                if(atoi(arg) == 1)
+                    argFlags.edgeSelection = randomSelection;
+                else if(atoi(arg) == 2)
+                    argFlags.edgeSelection = min;
+                else if(atoi(arg) == 3)
+                    argFlags.edgeSelection = max;
                 waitingForArg = 0;
                 break;
             case 5:
@@ -117,7 +176,7 @@ void handleArgs(ArgFlags& argFlags, int& argc, char**& argv)
     argFlags.error = false;
 }
 
-PointList getPointsFromFile(string filepath, int& size)
+void getPointsFromFile(string filepath, int& size, PointList& points, int& convexHullArea)
 {
     //get number of lines
     ifstream infile(filepath);
@@ -128,8 +187,6 @@ PointList getPointsFromFile(string filepath, int& size)
     int pointsCount = linesCount - 2;   //files always have 2 comments and then just points
     size = pointsCount;
 
-    //allocate space
-    PointList list = (PointList) malloc(sizeof(Point_2)*pointsCount);
     
     //reset reading cursor
     infile.clear();
@@ -138,7 +195,14 @@ PointList getPointsFromFile(string filepath, int& size)
     //ignore first 2 lines
     getline(infile, line);
     getline(infile,line);
-    
+
+    //get convex hull area from second line
+    convexHullArea = stoi(
+        line.substr(
+            line.find("{\"area\": \"") + 10, 
+            line.find("\"}"))
+    );
+
     //read points
     int x,y;
     for(int i = 0; getline(infile, line); i++)
@@ -146,10 +210,66 @@ PointList getPointsFromFile(string filepath, int& size)
         int ignore;
         std::istringstream iss(line);
         iss >> ignore >> x >> y;
-        list[i] = Point_2(x, y);
+        points.push_back(Point_2(x,y));
     }
 
-    return list;
+    return;
+}
+
+void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, int convexHullArea, std::chrono::milliseconds duration){
+    std::ofstream outfile(filepath);
+
+    outfile << "Polygonization" << endl;
+    for(auto iter = polygon.vertices_begin(); iter != polygon.vertices_end(); ++iter)
+        outfile << *iter << endl;
+    for(auto iter = polygon.edges_begin(); iter != polygon.edges_end(); ++iter)
+        outfile << *iter << endl;
+    outfile << getAlgorithmString(argFlags) << endl;
+
+    double polygonArea = polygon.area();
+    outfile << "area: " << polygonArea << endl;
+    outfile << "ratio: " << convexHullArea / polygonArea << endl;
+    outfile << "construction time: " << duration.count() << endl;
+
+    return;
+}
+
+string getAlgorithmString(ArgFlags argFlags){
+
+    string res;
+
+    res += string("Algorithm: ");
+    if(argFlags.algorithm == incremental)
+    {
+        res += string("incremental");
+        res += string("_edge_selection");
+        
+        if(argFlags.edgeSelection == randomSelection) res += string("1");
+        else if(argFlags.edgeSelection == min) res += string("2");    
+        else res += string("3");
+
+        res += string("_initialization");
+        if(argFlags.initialization == a1) res += string("1a");
+        else if(argFlags.initialization == b1) res += string("1b");
+        else if(argFlags.initialization == a2) res += string("2a");
+        else res += string("2b");
+    }
+    else if(argFlags.algorithm == convex_hull) 
+    {
+        res += string("convex_hull");
+        res += string("_edge_selection");
+        if(argFlags.edgeSelection == randomSelection) res += string("1");
+        else if(argFlags.edgeSelection == min) res += string("2");    
+        else res += string("3");
+    
+    }else 
+    {
+        res += string("onion");
+        res += string("_initialization");
+        res += std::to_string(argFlags.onionInitialization);
+    }
+
+    return res;
 }
 
 void printArguments(ArgFlags& argFlags){
