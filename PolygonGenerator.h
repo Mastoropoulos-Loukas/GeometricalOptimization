@@ -5,11 +5,11 @@
 
 class PolygonGenerator
 {
-private:
-    const PointList *list;  //constant pointer to the list of points.
+protected:
+    PointList& list;  //constant pointer to the list of points.
 
 public:
-    PolygonGenerator(PointList *input): list(input){};
+    PolygonGenerator(PointList& input): list(input){};
     virtual Polygon_2 generatePolygon() = 0;    //sub classes must implent this class
 };
 
