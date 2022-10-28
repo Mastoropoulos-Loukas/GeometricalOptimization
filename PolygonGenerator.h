@@ -3,6 +3,9 @@
 
 #include "shared.h"
 
+using CGAL::do_intersect;
+typedef std::vector<Segment_2>::iterator SegmentIterator;
+
 class PolygonGenerator
 {
 protected:
