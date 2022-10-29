@@ -33,6 +33,36 @@ double pick(double a,double b){
 std::cout<< a << b <<std::endl;
   return a+ (b/2) -1;
 }
+
+int pick(Polygon_2 poly){
+  double a=0;
+  double b=0;
+    points add;
+
+int j=0;
+  Point points[poly.size()] ;
+for (auto vi = poly.vertices_begin(); vi != poly.vertices_end(); ++vi,++j)
+    {
+     points[j]=vi[0];
+     }
+int xmin=CGAL::to_double(poly.left_vertex()[0][0]);
+int xmax=CGAL::to_double(poly.right_vertex()[0][0]);
+int ymin=CGAL::to_double(poly.bottom_vertex()[0][1]);
+int ymax=CGAL::to_double(poly.top_vertex()[0][1]);
+  for(int i=xmin;i<=xmax;++i){
+ for(int k=ymin;k<=ymax;++k)
+  {add=check_inside(Point(i,k), points, points+poly.size(), K());
+   a+=add.a;
+   b+=add.b;
+  // std::cout<<i<< " "<<k<<std::endl;
+  }
+
+
+   double temp=pick(a,b);
+   return temp;
+}
+
+}
 int temp()
 {
   Point p(0,1);
