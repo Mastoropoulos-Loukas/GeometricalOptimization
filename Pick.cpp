@@ -1,7 +1,5 @@
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-#include <CGAL/intersections.h>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/convex_hull_2.h>
+#include "shared.h"
+#include "PolygonGenerator.h"
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_2 Point;
 typedef CGAL::Polygon_2<K>                                  Polygon_2;
