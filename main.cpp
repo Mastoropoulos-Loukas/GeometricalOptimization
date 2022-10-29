@@ -4,7 +4,7 @@
 #include <string.h>
 #include "PolygonGenerator.h"
 #include "shared.h"
- 
+  
 using std::cout;
 using std::endl;
 using std::string;
