@@ -162,7 +162,10 @@ static void getClosestPointForEachEdge(PointPairList& record, Polygon_2& poly, P
     }
 }
 
-//Check if we can remove edge (p1, p1+1) and add edges (p1, p2) and (p2, p1+1) to the polygon
+/*
+    Assume a polygon <poly> with an edge <initialEdge> and a point <p>
+    If we can break <initialEdge> (from point A to point B) and connect p (point C) with edges AC and BC so that p is added to the polygon, isReplaceable return true, else false. 
+*/
 bool isReplaceable(Point_2 p, Segment_2 initialEdge, Polygon_2 poly)
 {
 
@@ -186,7 +189,6 @@ bool isReplaceable(Point_2 p, Segment_2 initialEdge, Polygon_2 poly)
             auto val = intersection(edge1, curr).value();
             if(val != var1 && val != var2)
             {
-                cout << edge1 << " and " << curr << " intersect at " << val << endl;
                 return false;
             }
         }
@@ -196,12 +198,10 @@ bool isReplaceable(Point_2 p, Segment_2 initialEdge, Polygon_2 poly)
             auto val = intersection(edge2, curr).value();
             if(val != var1 && val != var2)
             {
-                cout << edge2 << " and " << curr << " intersect at " << val << endl;
                 return false;
             }
         }
     }
-    cout << "Could replace " << initialEdge << " with point " << p << endl;
     return true;
 }
 
