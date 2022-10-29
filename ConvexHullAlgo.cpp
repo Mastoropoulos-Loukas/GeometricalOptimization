@@ -18,7 +18,7 @@ static PointPairListIterator selectEdge(PointPairList&, EdgeSelection);
 template <typename T>
 static void printList(std::vector<T>, std::string);
 
-using std::cout, std::endl, std::string;
+using std::cout;  using std::endl; using std::string;
 
 Polygon_2 ConvexHullAlgo::generatePolygon(){
     Polygon_2 p;

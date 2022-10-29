@@ -10,6 +10,7 @@
 !docs/*
 !shared.h
 !onion.cpp
+!onion.h
 !/algs/Pick.cpp
 !incr.cpp
 !Pick.cpp
