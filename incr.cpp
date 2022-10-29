@@ -354,7 +354,7 @@ if(ver[1][0]==left)
 
 
 
-
+/*
 int main ()
 {
   Polygon_2 v;
@@ -455,3 +455,5 @@ hull.clear();
   
   return 0;
 }
+
+*/

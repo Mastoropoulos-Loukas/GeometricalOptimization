@@ -5,12 +5,11 @@
 #include "PolygonGenerator.h"
 
 
-class ConvexHullAlgo : private PolygonGenerator{
+class ConvexHullAlgo : public PolygonGenerator{
 
 public:
     ConvexHullAlgo(PointList&);
-    Polygon_2 generatePolygon();
-
+    virtual Polygon_2 generatePolygon();
 };
 
 #endif
