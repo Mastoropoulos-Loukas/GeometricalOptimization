@@ -153,8 +153,9 @@ int x;
 int y;
 int count=0;
 ListofSegments temp;
-
-for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_begin(); --vi){
+int i=0;
+int j=0;
+for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_begin(); --vi,++i){
 
 if(vi[0][0]==edges.y)
 break;
@@ -171,14 +172,14 @@ count+=foo(v2[0],midpoint,Point(x,y));
 
 }
 if(count>0){
- temp.pos=1;
+ temp.pos=i;
  temp.seg=vi[0];
  res.push_back(temp);
 
 }
 }
 
-for (auto vi = poly.edges_begin()+pos; vi != poly.edges_end(); ++vi){
+for (auto vi = poly.edges_begin()+pos; vi != poly.edges_end(); ++vi,++j){
 if(vi[0][0]==edges.x)
 break;
 lright={p,vi[0][0]};
@@ -196,7 +197,7 @@ count+=foo(v2[0],midpoint,Point(x,y));
 
 }
 if(count>0){
- temp.pos=1;
+ temp.pos=j;
  temp.seg=vi[0];
  res.push_back(temp);
 
@@ -418,7 +419,7 @@ int main ()
   Polygon_2 temp;
   Segment_2 l1;
   std::vector<ListofSegments> points;
-
+   int pos=1;
   for(auto v1=vec.begin()+4;v1!=vec.end();++v1,++i){
 
   CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
@@ -426,9 +427,9 @@ int main ()
  // std::cout<<"For "<<v1[0]<< " " << edges.x<< " "<<edges.y<<std::endl;
   //points=CheckThePolygon(poly,v1[0],count,l1,edges.x,edges.y);
   //showlist(points);
-edges=CheckHull(hull,v1[0],1);
-points=ChecPol(poly,v1[0],1,edges);
-std::cout<<points[0].seg<<std::endl;
+edges=CheckHull(hull,v1[0],pos);
+points=ChecPol(poly,v1[0],pos,edges);
+pos=points[0].pos;
 poly.insert(poly.vertices_begin()+points[0].pos+1,v1[0]);
 hull.clear();
 //std::list<ListofSegments>::iterator it = li.begin();
