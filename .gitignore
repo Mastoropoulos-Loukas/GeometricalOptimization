@@ -7,3 +7,5 @@
 !README.md
 !docs/*
 !shared.h
+!pick.cpp
+!incr.cpp
