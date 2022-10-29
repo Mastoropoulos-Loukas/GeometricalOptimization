@@ -4,6 +4,8 @@
 #except
 !main.cpp
 !PolygonGenerator.h
+!ConvexHullAlgo.cpp
+!ConvexHullAlgo.h
 !README.md
 !docs/*
 !shared.h
