@@ -109,12 +109,12 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
 
   //Need visibility for this 
-  int m=0;
+  // int m=0;
 
-  while(allPolys[0].vertex(m)!= *allPolys[0].top_vertex()){
-    m++;
-  }
-  // int m=allPolys[0].size()/2;
+  // while(allPolys[0].vertex(m)!= *allPolys[0].top_vertex()){
+  //   m++;
+  // }
+  int m=allPolys[0].size()/2;
 
   COUT<<"m is "<<m<<ENDL;
 
