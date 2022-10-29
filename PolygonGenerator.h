@@ -3,9 +3,6 @@
 
 #include "shared.h"
 
-using CGAL::do_intersect;
-typedef std::vector<Segment_2>::iterator SegmentIterator;
-
 class PolygonGenerator
 {
 protected:
@@ -14,6 +11,7 @@ protected:
 public:
     PolygonGenerator(PointList& input): list(input){};
     virtual Polygon_2 generatePolygon() = 0;    //sub classes must implent this class
+    virtual ~PolygonGenerator(){};
 };
 
 #endif

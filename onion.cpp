@@ -153,11 +153,11 @@ int onion(){
   COUT<<ENDL<<"PRINTING ALLPOLYS"<<ENDL;
   for(int i =0; i<allPolys.size();i++){
 
-    std::vector<Segment_2> segVec;
-    for(const Segment_2& e  : allPolys[i].edges()){
-      segVec.push_back(e);
-    }
-    vecAllPolys.push_back(segVec);
+    // std::vector<Segment_2> segVec;
+    // for(const Segment_2& e  : allPolys[i].edges()){
+    //   segVec.push_back(e);
+    // }
+    // vecAllPolys.push_back(segVec);
 
     COUT<<ENDL;
   }
@@ -173,9 +173,9 @@ int onion(){
 
 
   COUT<<ENDL;
-  for(const Point_2& p : allPolys[0].vertices()){
-    std::cout << "(" << p << ") ";
-  }
+  // for(const Point_2& p : allPolys[0].vertices()){
+  //   std::cout << "(" << p << ") ";
+  // }
   COUT<<ENDL;
 
   for(int i=0;i<allPolys.size();i++){

@@ -52,7 +52,21 @@ int main(int argc, char **argv)
 
     //calculate convex hull
     Polygon_2 p, chp;
-    ConvexHullAlgo generator(list);
+    PolygonGenerator *generator;
+    switch (argFlags.algorithm)
+    {
+    case incremental:
+        generator = new ConvexHullAlgo(list);       //TO DO: chang to something like generator = new Incremental(list)
+        break;
+    case convex_hull:
+        generator = new ConvexHullAlgo(list);
+        break;
+    case onion:
+        generator = new ConvexHullAlgo(list);       //TO DO: chang to something like generator = new Onion(list)
+        break;
+    default:
+        break;
+    }
 
     CGAL::convex_hull_2(list.begin(), list.end(), std::back_inserter(result));
     for(auto it = result.begin(); it != result.end(); ++it) chp.push_back(*it);
@@ -60,7 +74,7 @@ int main(int argc, char **argv)
     //calculate polygon
     auto start = std::chrono::high_resolution_clock::now();
 
-    p = generator.generatePolygon();
+    p = (*generator).generatePolygon();
     
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
