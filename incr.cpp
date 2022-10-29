@@ -18,6 +18,7 @@
 #include <CGAL/intersections.h>
 #include "PolygonGenerator.h"
 #include "shared.h"
+#include"Pick.h"
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
 typedef Kernel::Line_2                                          Line_2;
@@ -258,7 +259,6 @@ int main ()
 
 
 
-
   std::ostream_iterator< Point>  out( std::cout, "\n" );
   std::ofstream os("test.wkt");
   std::ofstream os1("test1.wkt");
@@ -273,6 +273,8 @@ int main ()
   poly.push_back(vec[1]);
   poly.push_back(vec[2]);
     CGAL::IO::write_polygon_WKT(os2,poly);
+ std::cout<<Pick(poly)<<std::endl;
+ std::cout<<(poly.area())<<std::endl;
 
  if(!poly.is_simple()){
   
@@ -293,7 +295,6 @@ CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
 
 
 edges=CheckHull(hull,v1[0],pos);
-std::cout<<edges.x<<edges.y<<std::endl;
 points=ChecPol(poly,v1[0],pos,edges);
 
 //pos=points[0].pos;

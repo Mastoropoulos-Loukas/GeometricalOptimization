@@ -8,4 +8,5 @@
 !docs/*
 !shared.h
 !Pick.cpp
+!Pick.h
 !incr.cpp

@@ -1,5 +1,4 @@
-#include "shared.h"
-#include "PolygonGenerator.h"
+#include "Pick.h"
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_2 Point;
 typedef CGAL::Polygon_2<K>                                  Polygon_2;
@@ -28,11 +27,10 @@ points check_inside(Point pt, Point *pgn_begin, Point *pgn_end, K traits)
   return temp;
 }
 double pick(double a,double b){
-std::cout<< a << b <<std::endl;
   return a+ (b/2) -1;
 }
 
-int pick(Polygon_2 poly){
+double Pick(Polygon_2 poly){
   double a=0;
   double b=0;
     points add;
@@ -52,14 +50,16 @@ int ymax=CGAL::to_double(poly.top_vertex()[0][1]);
   {add=check_inside(Point(i,k), points, points+poly.size(), K());
    a+=add.a;
    b+=add.b;
-  // std::cout<<i<< " "<<k<<std::endl;
   }
 
 
-   double temp=pick(a,b);
-   return temp;
+
+  
 }
 
+   double temp=pick(a,b);
+
+ return temp;
 }
 int temp()
 {
