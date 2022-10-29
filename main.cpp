@@ -65,10 +65,6 @@ int main(int argc, char **argv)
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-    cout << endl << "Main after: " << endl;
-        for(auto it = p.vertices_begin(); it != p.vertices_end(); ++it)
-            cout << *it << endl;
-
     //write shapes
     std::ofstream dump("polygon.wkt"), pointDump("points.wkt"), hullDump("hull.wkt");
     CGAL::IO::write_polygon_WKT(
