@@ -3,11 +3,6 @@
 
 ConvexHullAlgo::ConvexHullAlgo(PointList& list) : PolygonGenerator(list){};
 
-typedef Polygon_2::Edge_const_iterator EdgeIterator;
-typedef std::pair<PointListIterator, PointListIterator> PointPair;
-typedef std::vector<PointPair> PointPairList;
-typedef std::vector<PointPair>::iterator PointPairListIterator;
-
 using CGAL::squared_distance;
 
 bool isReplaceable(Point_2 p, Segment_2 initialEdge, Polygon_2 poly);

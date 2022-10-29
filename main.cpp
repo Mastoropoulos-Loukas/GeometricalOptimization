@@ -32,7 +32,7 @@ public:
     };
 };
 
-int temp(int argc, char **argv)
+int main(int argc, char **argv)
 {
     ArgFlags argFlags;
     handleArgs(argFlags, argc, argv);
