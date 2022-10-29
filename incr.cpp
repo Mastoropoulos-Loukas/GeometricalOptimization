@@ -430,7 +430,7 @@ int main ()
 edges=CheckHull(hull,v1[0],pos);
 points=ChecPol(poly,v1[0],pos,edges);
 pos=points[0].pos;
-poly.insert(poly.vertices_begin()+points[0].pos+1,v1[0]);
+poly.insert(poly.vertices_begin()+points[0].pos,v1[0]);
 hull.clear();
 //std::list<ListofSegments>::iterator it = li.begin();
 //std::cout<<v1[0]<<points[0].pos<<std::endl;
