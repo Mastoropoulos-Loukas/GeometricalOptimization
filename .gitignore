@@ -7,5 +7,5 @@
 !README.md
 !docs/*
 !shared.h
-!pick.cpp
+!Pick.cpp
 !incr.cpp
