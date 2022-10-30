@@ -1,0 +1,3 @@
+./to_polygon -i ../instances/data/images/euro-night-0000020.instance -o test.txt -algorithm convex_hull -edge_selection 1
+./to_polygon -i ../instances/data/images/euro-night-0000020.instance -o test.txt -algorithm incremental -edge_selection 1 -initialization 1a
+./to_polygon -i ../instances/data/images/euro-night-0000020.instance -o test.txt -algorithm onion -onion_initialization 1
