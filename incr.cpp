@@ -1,5 +1,5 @@
 #include"incr.h"
-
+#include <climits>
 IncAlgo::IncAlgo(PointList& list, ArgFlags argFlags) : PolygonGenerator(list){this->argFlags = argFlags;};
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
@@ -30,6 +30,72 @@ struct ListofSegments{
 std::vector<ListofSegments> ChecPol(Polygon_2 ,Point ,int ,PurpleEdges );
 PurpleEdges CheckHull(Polygon_2 ,Point ,int );
 
+
+int Edgeselection(Polygon_2 poly,Point p,std::vector<ListofSegments> segs,int mode){
+int i=0;
+int pos=0;
+Polygon_2 triangle;
+Segment_2 seg;
+
+if(mode==0)
+for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+   if (segs[0].seg==v2[0])
+  { pos=i+1;
+  return pos;
+  }
+
+
+}
+if(mode==2){
+int max=-1;
+for(auto v2=segs.begin();v2!=segs.end();++v2){
+
+triangle.push_back(p);
+triangle.push_back(v2[0].seg[0]);
+triangle.push_back(v2[0].seg[1]);
+if(max<=abs(triangle.area())){
+max=abs(triangle.area());
+seg=v2[0].seg;
+}
+}
+for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+   if (seg==v2[0])
+  { pos=i+1;
+  return pos;
+  }
+
+
+}
+
+}
+
+if(mode==1){
+int min=INT_MAX;
+for(auto v2=segs.begin();v2!=segs.end();++v2){
+
+triangle.push_back(p);
+triangle.push_back(v2[0].seg[0]);
+triangle.push_back(v2[0].seg[1]);
+if(min>=abs(triangle.area())){
+min=abs(triangle.area());
+seg=v2[0].seg;
+}
+}
+
+for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+   if (seg==v2[0])
+  { pos=i+1;
+  return pos;
+  }
+
+
+}
+
+  
+}
+
+
+}
 Polygon_2 IncAlgo::generatePolygon(){
 
   std::vector <Point> vec;
@@ -47,7 +113,6 @@ else   if(argFlags.initialization==2)
   mode="1b";
 else   if(argFlags.initialization==3)
   mode="2b";
-  std::cout<<argFlags.initialization<<std::endl;
   vec=SortPoints(mode,list);
 
   Polygon_2 poly;
@@ -89,9 +154,9 @@ i=0;
 
 
   }
-if(select==0)
-poly.insert(poly.vertices_begin()+pos,v1[0]);
+poly.insert(poly.vertices_begin()+Edgeselection(poly,v1[0],points,argFlags.edgeSelection),v1[0]);
 //else if(select==1)
+
 //else if(select==2)
 hull.clear();
 
