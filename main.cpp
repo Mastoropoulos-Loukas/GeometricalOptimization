@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     switch (argFlags.algorithm)
     {
     case incremental:
-        generator = new IncAlgo(list);       //TO DO: chang to something like generator = new Incremental(list)
+        generator = new IncAlgo(list, argFlags);       //TO DO: chang to something like generator = new Incremental(list)
         break;
     case convex_hull:
         generator = new ConvexHullAlgo(list);

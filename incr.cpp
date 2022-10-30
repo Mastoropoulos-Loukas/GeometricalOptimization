@@ -1,6 +1,6 @@
 #include"incr.h"
 
-IncAlgo::IncAlgo(PointList& list) : PolygonGenerator(list){};
+IncAlgo::IncAlgo(PointList& list, ArgFlags argFlags) : PolygonGenerator(list){this->argFlags = argFlags;};
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
@@ -29,7 +29,7 @@ struct ListofSegments{
 std::vector<ListofSegments> ChecPol(Polygon_2 ,Point ,int ,PurpleEdges );
 PurpleEdges CheckHull(Polygon_2 ,Point ,int );
 
-Polygon_2 IncAlgo::generatePolygon(ArgFlags argFlags){
+Polygon_2 IncAlgo::generatePolygon(){
 
   std::vector <Point> vec;
 std::ostream_iterator< Point>  out( std::cout, "\n" );
@@ -277,7 +277,7 @@ break;
 return res;
 }
 
-
+/*
 
 int ing ()
 {
@@ -397,3 +397,4 @@ pos=pos-1;
   
   return 0;
 }
+*/

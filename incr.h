@@ -16,8 +16,8 @@ class IncAlgo : public PolygonGenerator{
 private:
 ArgFlags argFlags;
 public:
-    IncAlgo(PointList&);
-    virtual Polygon_2 generatePolygon(ArgFlags);
+    IncAlgo(PointList&, ArgFlags);
+    virtual Polygon_2 generatePolygon();
 };
 
 
