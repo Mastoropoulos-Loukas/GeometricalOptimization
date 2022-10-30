@@ -36,10 +36,19 @@ int i=0;
 int pos=0;
 Polygon_2 triangle;
 Segment_2 seg;
-
+srand ( time(NULL) );
+int temp;
+if(segs.size()>2)
+temp=rand()%segs.size();
+else
+temp=0;
 if(mode==0)
 for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
-   if (segs[0].seg==v2[0])
+
+  seg=segs[temp].seg;
+
+
+   if (seg==v2[0])
   { pos=i+1;
   return pos;
   }
@@ -91,7 +100,7 @@ for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
 
 }
 
-  
+
 }
 
 
@@ -159,6 +168,7 @@ poly.insert(poly.vertices_begin()+Edgeselection(poly,v1[0],points,argFlags.edgeS
 
 //else if(select==2)
 hull.clear();
+points.clear();
 
 pos=pos-1;
   if(!poly.is_simple()){
