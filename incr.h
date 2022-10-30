@@ -1,6 +1,6 @@
 
-#ifndef Incrimental
-#define Incrimental
+#ifndef Incremental
+#define Incremental
 #include "PolygonGenerator.h"
 #include "shared.h"
 #include"Pick.h"
@@ -8,12 +8,15 @@
 #include "PolygonGenerator.h"
 
 
-class IncAlgo : private PolygonGenerator{
 
+
+class IncAlgo : public PolygonGenerator{
+private:
+ArgFlags argFlags;
 public:
     IncAlgo(PointList&);
-    Polygon_2 generatePolygon();
-
+    virtual Polygon_2 generatePolygon(ArgFlags);
 };
+
 
 #endif
