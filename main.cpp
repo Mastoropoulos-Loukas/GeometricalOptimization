@@ -245,7 +245,7 @@ void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, i
 
     double polygonArea =  abs(polygon.area());
     outfile << "area: " << polygonArea << endl;
-    // outfile << "pick_calculated_area: " << Pick(polygon) << endl;    TODO implement method
+    // outfile << "pick_calculated_area: " << Pick(polygon) << endl;
     outfile << "ratio: " << convexHullArea / polygonArea << endl;
     outfile << "construction time: " << duration.count() << endl;
     return;
