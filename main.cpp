@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <cstdlib>
 #include <string.h>
 #include "PolygonGenerator.h"
 #include "ConvexHullAlgo.h"
@@ -242,11 +243,11 @@ void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, i
         outfile << *iter << endl;
     outfile << getAlgorithmString(argFlags) << endl;
 
-    double polygonArea =  polygon.area();
+    double polygonArea =  abs(polygon.area());
     outfile << "area: " << polygonArea << endl;
+    // outfile << "pick_calculated_area: " << Pick(polygon) << endl;    TODO implement method
     outfile << "ratio: " << convexHullArea / polygonArea << endl;
     outfile << "construction time: " << duration.count() << endl;
-
     return;
 }
 
