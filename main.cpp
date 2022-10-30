@@ -5,6 +5,7 @@
 #include "PolygonGenerator.h"
 #include "ConvexHullAlgo.h"
 #include "shared.h"
+#include "onion.h"
   
 using std::cout;
 using std::endl;
@@ -18,12 +19,12 @@ string getAlgorithmString(ArgFlags argFlags);
 
 
 //Dummy class just pushes all point in order to the polygon
-class DummyGenerator: private PolygonGenerator{
+class DummyGenerator: public PolygonGenerator{
     
 public:
     DummyGenerator(PointList& list): PolygonGenerator(list){};
 
-    Polygon_2 generatePolygon(){
+    virtual Polygon_2 generatePolygon(){
         Polygon_2 p;
         for(PointListIterator iter = list.begin(); iter != list.end(); ++iter)
             p.push_back(*iter);
@@ -56,13 +57,13 @@ int main(int argc, char **argv)
     switch (argFlags.algorithm)
     {
     case incremental:
-        generator = new ConvexHullAlgo(list);       //TO DO: chang to something like generator = new Incremental(list)
+        generator = new DummyGenerator(list);       //TO DO: chang to something like generator = new Incremental(list)
         break;
     case convex_hull:
         generator = new ConvexHullAlgo(list);
         break;
     case onion:
-        generator = new ConvexHullAlgo(list);       //TO DO: chang to something like generator = new Onion(list)
+        generator = new DummyGenerator(list);       //TO DO: chang to something like generator = new Onion(list)
         break;
     default:
         break;
