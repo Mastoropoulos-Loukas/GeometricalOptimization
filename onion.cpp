@@ -25,7 +25,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
   
   while(points.size()>2){
     if(points.size()==3 && CGAL::collinear(points[0],points[1],points[2])){
-      std::vector<Point_2>::iterator it;
+      std::vector<Point_2>::iterator it = points.begin();
       points.erase(it+1); //Check for potential trouble
     }else{
       std::vector<std::size_t> indices(points.size()), out;
@@ -75,9 +75,9 @@ Polygon_2 OnionAlgo::generatePolygon(){
   for(int i =0; i<allPolys.size();i++){
 
     std::vector<Segment_2> segVec;
-    // for(const Segment_2& e  : allPolys[i].edges()){
-    //   segVec.push_back(e);
-    // }
+    for(const Segment_2& e  : allPolys[i].edges()){
+      segVec.push_back(e);
+    }
     vecAllPolys.push_back(segVec);
 
     COUT<<ENDL;
@@ -94,9 +94,9 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
 
   COUT<<ENDL;
-  // for(const Point_2& p : allPolys[0].vertices()){
-  //   std::cout << "(" << p << ") ";
-  // }
+  for(const Point_2& p : allPolys[0].vertices()){
+    std::cout << "(" << p << ") ";
+  }
   COUT<<ENDL;
 
   
@@ -524,6 +524,9 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
   CGAL::IO::write_polygon_WKT(os,finalPoly);
 
+  int area=finalPoly.area();
+
+  COUT<<"AREA IS "<<area<<ENDL;
 
   return finalPoly;
 }
