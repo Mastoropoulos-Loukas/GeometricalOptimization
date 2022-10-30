@@ -2,7 +2,7 @@
 #include "onion.h"
 
 // Constructor
-OnionAlgo::OnionAlgo(PointList& list) : PolygonGenerator(list){};
+OnionAlgo::OnionAlgo(PointList& list, int option) : PolygonGenerator(list){this->option=option;};
 
 // Function that actually find the polygon
 Polygon_2 OnionAlgo::generatePolygon(){
@@ -107,27 +107,31 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
 
 
+  int criterion=this->option;
   int m=0;
 
-  //Need visibility for this 
+  if(criterion==1){
+    m=allPolys[0].size()/2; // TODO: Actuall Random   
+  }else if(criterion==2){
+    while(allPolys[0].vertex(m)!= *allPolys[0].left_vertex()){
+      m++;
+    }  
+  }else if(criterion==3){
+    while(allPolys[0].vertex(m)!= *allPolys[0].right_vertex()){
+      m++;
+    }
+  }else if(criterion==4){
+    while(allPolys[0].vertex(m)!= *allPolys[0].bottom_vertex()){
+      m++;
+    }
+  }else if(criterion==5){
+    while(allPolys[0].vertex(m)!= *allPolys[0].top_vertex()){
+      m++;
+    }
+  }else{
+    m=allPolys[0].size()/2;
+  }
 
-  // while(allPolys[0].vertex(m)!= *allPolys[0].bottom_vertex()){
-  //   m++;
-  // }
-  
-  // while(allPolys[0].vertex(m)!= *allPolys[0].top_vertex()){
-  //   m++;
-  // }
-
-  // while(allPolys[0].vertex(m)!= *allPolys[0].right_vertex()){
-  //   m++;
-  // }
-
-  while(allPolys[0].vertex(m)!= *allPolys[0].left_vertex()){
-    m++;
-  }  
-  
-  // m=allPolys[0].size()/2;
 
   COUT<<"m is "<<m<<ENDL;
 
@@ -401,17 +405,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
       int initK=indexClosestK;
       int initLam=indexLamda;
 
-      // if(indexLamda!=allPolys[i+1].size()-1){
-      //   indexLamda++;
-      // }else{
-      //   indexLamda=0;
-      // }
-      // if(indexClosestK!=0){
-      //   indexClosestK--;
-      // }else{
-      //   indexClosestK=0;
-      // }
-
       do{
         if(indexLamda!=allPolys[i+1].size()-1){
           indexLamda++;
@@ -425,11 +418,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
           indexClosestK=allPolys[i+1].size()-1;
         }
         if((allPolys[i+1].size()) %2 && indexLamda==indexClosestK){
-          // if(indexClosestK!=0){
-          //   indexClosestK--;
-          // }else{
-          //   indexClosestK=allPolys[i+1].size()-1;
-          // }
 
           if(indexLamda!=allPolys[i+1].size()-1){
             indexLamda++;

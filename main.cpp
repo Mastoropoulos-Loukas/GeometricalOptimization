@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         generator = new ConvexHullAlgo(list, argFlags.edgeSelection);
         break;
     case onion:
-        generator = new OnionAlgo(list); 
+        generator = new OnionAlgo(list, argFlags.onionInitialization); 
         break;
     default:
         break;

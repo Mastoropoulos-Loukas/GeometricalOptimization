@@ -33,9 +33,10 @@ typedef CGAL::Convex_hull_traits_adapter_2<Kernel,
           CGAL::Pointer_property_map<Point_2>::type > Convex_hull_traits_2;
 
 class OnionAlgo : public PolygonGenerator{
-
+private:
+    int option;
 public:
-    OnionAlgo(PointList&);
+    OnionAlgo(PointList&, int);
     virtual Polygon_2 generatePolygon();
 
 };

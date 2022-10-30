@@ -3,8 +3,8 @@
 
 ConvexHullAlgo::ConvexHullAlgo(PointList& list, EdgeSelection method) : PolygonGenerator(list){this->method = method;};
 
-using CGAL::squared_distance, CGAL::IO::write_multi_point_WKT, CGAL::IO::write_polygon_WKT;
-using std::string, std::cout, std::endl;
+using CGAL::squared_distance; using CGAL::IO::write_multi_point_WKT; using CGAL::IO::write_polygon_WKT;
+using std::string; using std::cout; using std::endl;
 
 typedef boost::optional<Point_2> OptionalPoint;
 
