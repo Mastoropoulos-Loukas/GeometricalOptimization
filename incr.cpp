@@ -1,32 +1,26 @@
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <iostream>
-#include <vector>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/convex_hull_2.h>
-#include <CGAL/IO/WKT.h>
-#include <boost/optional/optional_io.hpp>
-#include <CGAL/Polygon_2_algorithms.h>
-#include <CGAL/Boolean_set_operations_2.h>
-#include <CGAL/Surface_sweep_2_algorithms.h>
-#include <list>
-#include <cassert>
- #include <CGAL/Boolean_set_operations_2.h> 
- #include <CGAL/Line_2.h>
- #include <CGAL/Circular_kernel_intersections.h> 
- #include <string>
- #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-#include <CGAL/intersections.h>
-#include "PolygonGenerator.h"
-#include "shared.h"
-#include"Pick.h"
+#include"incr.h"
+IncAlgo::IncAlgo(PointList& list) : PolygonGenerator(list){};
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
 typedef Kernel::Line_2                                          Line_2;
 
 typedef CGAL::Polygon_2<Kernel>                                  Polygon_2;
-typedef CGAL::Arr_segment_traits_2<Kernel>                      Traits_2;
+
+Polygon_2 IncAlgo::generatePolygon(){
 
 
+  std::vector<Point_2> points=list;
+  
+
+  std::vector<Polygon_2> allPolys;
+
+  std::vector<std::vector<Segment_2>> vecAllPolys;
+
+
+
+
+}
 //intersection between a segment of a polygon and the line 
 int foo(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point_2<Kernel> p)
 {
@@ -255,7 +249,9 @@ int main ()
  lis.push_back(q2); 
  lis.push_back(q13); 
 
-
+lis.push_back(q12); 
+lis.push_back(q3); 
+lis.push_back(q4); 
 
 
 
