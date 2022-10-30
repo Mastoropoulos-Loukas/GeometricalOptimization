@@ -18,7 +18,6 @@ void handleArgs(ArgFlags& argFlags, int& argc, char**& argv);
 void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, int convexHullArea, std::chrono::milliseconds duration);
 string getAlgorithmString(ArgFlags argFlags);
 
-
 //Dummy class just pushes all point in order to the polygon
 class DummyGenerator: public PolygonGenerator{
     

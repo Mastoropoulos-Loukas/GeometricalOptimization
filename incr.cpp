@@ -1,33 +1,114 @@
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <iostream>
-#include <vector>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/convex_hull_2.h>
-#include <CGAL/IO/WKT.h>
-#include <boost/optional/optional_io.hpp>
-#include <CGAL/Polygon_2_algorithms.h>
-#include <CGAL/Boolean_set_operations_2.h>
-#include <CGAL/Surface_sweep_2_algorithms.h>
-#include <list>
-#include <cassert>
- #include <CGAL/Boolean_set_operations_2.h> 
- #include <CGAL/Line_2.h>
- #include <CGAL/Circular_kernel_intersections.h> 
- #include <string>
- #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-#include <CGAL/intersections.h>
-#include "PolygonGenerator.h"
-#include "shared.h"
+#include"incr.h"
+
+IncAlgo::IncAlgo(PointList& list) : PolygonGenerator(list){};
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
-typedef Kernel::Line_2                                          Line_2;
+int foo(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kernel> );
+std::vector<Point> SortPoints(std::string ,std::vector<Point>);
+struct {
+      bool operator()(Point a, Point b) const { return a.y() < b.y(); }
+    } customLess;
 
-typedef CGAL::Polygon_2<Kernel>                                  Polygon_2;
-typedef CGAL::Arr_segment_traits_2<Kernel>                      Traits_2;
+struct {
+      bool operator()(Point a, Point b) const { return a.y() > b.y(); }
+    } customMore;
+struct PurpleEdges{
+
+  Point x;
+  Point y;
+
+};
+
+struct ListofSegments{
+
+   int pos;
+   Segment_2 seg;  
+
+};
+std::vector<ListofSegments> ChecPol(Polygon_2 ,Point ,int ,PurpleEdges );
+PurpleEdges CheckHull(Polygon_2 ,Point ,int );
+
+Polygon_2 IncAlgo::generatePolygon(ArgFlags argFlags){
+
+  std::vector <Point> vec;
+std::ostream_iterator< Point>  out( std::cout, "\n" );
+  std::ofstream os("test.wkt");
+  std::ofstream os1("test1.wkt");
+  std::ofstream os2("test12.wkt");
+  PurpleEdges edges;
+  std::string mode;
+  
+  if(argFlags.initialization==1)
+  mode="1a";
+  else if(argFlags.initialization==2)
+  mode="2a";
+else   if(argFlags.initialization==3)
+  mode="1b";
+else   if(argFlags.initialization==4)
+  mode="2b";
+  std::cout<<argFlags.initialization<<std::endl;
+  vec=SortPoints(mode,list);
+
+  Polygon_2 poly;
+  Polygon_2 hull;
+
+  poly.push_back(vec[0]);
+  poly.push_back(vec[1]);
+  poly.push_back(vec[2]);
+    CGAL::IO::write_polygon_WKT(os2,poly);
 
 
+ if(!poly.is_simple()){
+  
+    std::cout<<"Not simple anymore error occured!!!"<<std::endl;
+
+  }
+  int i=0;
+  int j=0;
+  int count=0;
+  std::vector<ListofSegments> points;
+   int pos=1;
+  for(auto v1=vec.begin()+3;v1!=vec.end();++v1,++i){
+
+CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
+
+edges=CheckHull(hull,v1[0],pos);
+points=ChecPol(poly,v1[0],pos,edges);
+i=0;
+    std::cout<<v1[0]<<std::endl;
+ 
+ for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+  
+ 
+   if (points[0].seg==v2[0])
+  { pos=i+1;
+  break;
+  }
+
+
+  }
+
+poly.insert(poly.vertices_begin()+pos,v1[0]);
+
+hull.clear();
+pos=pos-1;
+  if(!poly.is_simple()){
+  
+    std::cout<<"Not simple anymore error occured!!!"<<std::endl;
+
+  }
+
+  }
+      CGAL::IO::write_polygon_WKT(os2,poly);
+
+  return poly;
+
+
+
+}
 //intersection between a segment of a polygon and the line 
-int foo(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point_2<Kernel> p)
+int inter(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point_2<Kernel> p)
 {
   int count=0;
   Point point;
@@ -46,13 +127,6 @@ int foo(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point_2
 }
 
 
-struct {
-      bool operator()(Point a, Point b) const { return a.y() < b.y(); }
-    } customLess;
-
-struct {
-      bool operator()(Point a, Point b) const { return a.y() > b.y(); }
-    } customMore;
 
 
 
@@ -70,19 +144,7 @@ else if (mode =="1b")
 return v;
 }
 
-struct PurpleEdges{
 
-  Point x;
-  Point y;
-
-};
-
-struct ListofSegments{
-
-   int pos;
-   Segment_2 seg;  
-
-};
 PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
 
@@ -99,11 +161,12 @@ lleft={p,vi[0][1]};
 x=(vi[0][0][0]+vi[0][1][0])/2;
 y=(vi[0][1][1]+vi[0][0][1])/2;
     midpoint={p,Point(x,y)};
-for (auto v2 = hull.edges_end()-1; v2 != hull.edges_begin(); --v2){
 count=0;   
-count+=foo(v2[0],lright,p);
-count+=foo(v2[0],lleft,p);
-count+=foo(v2[0],midpoint,Point(x,y));
+
+for (auto v2 = hull.edges_end()-1; v2 != hull.edges_begin(); --v2){
+count+=inter(v2[0],lright,p);
+count+=inter(v2[0],lleft,p);
+count+=inter(v2[0],midpoint,Point(x,y));
 if(count>1){
 
   res.y=vi[0][0];
@@ -121,13 +184,13 @@ lleft={p,vi[0][1]};
 x=(vi[0][0][0]+vi[0][1][0])/2;
 y=(vi[0][1][1]+vi[0][0][1])/2;
 midpoint={p,Point(x,y)};
-
-for (auto v2 = hull.edges_end()-1; v2 != hull.edges_begin(); --v2){
 count=0;
 
-count+=foo(v2[0],lright,p);
-count+=foo(v2[0],lleft,p);
-count+=foo(v2[0],midpoint,Point(x,y));
+for (auto v2 = hull.edges_end()-1; v2 != hull.edges_begin(); --v2){
+
+count+=inter(v2[0],lright,p);
+count+=inter(v2[0],lleft,p);
+count+=inter(v2[0],midpoint,Point(x,y));
 if(count>1){
 
   res.x=vi[0][0];
@@ -137,7 +200,6 @@ break;
 }
 
 }
-std::cout<<res.x << " "<<res.y <<std::endl;
 return res;
 }
 
@@ -149,213 +211,75 @@ Segment_2 lright;
 Segment_2 midpoint;
 Segment_2 lleft;
 std::vector<ListofSegments> res;
-int x;
-int y;
+double x;
+double y;
 int count=0;
 ListofSegments temp;
 int i=0;
 int j=0;
-for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_begin(); --vi,++i){
+for (auto vi = poly.edges_begin()+pos; vi != poly.edges_begin(); --vi,++i){
 
-if(vi[0][0]==edges.y)
-break;
+
 lright={p,vi[0][0]};
 lleft={p,vi[0][1]};
 x=(vi[0][0][0]+vi[0][1][0])/2;
 y=(vi[0][1][1]+vi[0][0][1])/2;
     midpoint={p,Point(x,y)};
+count=0;
+
 for (auto v2 = poly.edges_end()-1; v2 != poly.edges_begin(); --v2){
-count=0;   
-count+=foo(v2[0],lright,p);
-count+=foo(v2[0],lleft,p);
-count+=foo(v2[0],midpoint,Point(x,y));
+count+=inter(v2[0],lright,vi[0][0]);
+count+=inter(v2[0],lleft,vi[0][1]);
+
+count+=inter(v2[0],midpoint,Point(x,y));
 
 }
-if(count>0){
- temp.pos=i;
+if(count==0){
+ temp.pos=i+pos+1;
  temp.seg=vi[0];
  res.push_back(temp);
 
 }
-}
-
-for (auto vi = poly.edges_begin()+pos; vi != poly.edges_end(); ++vi,++j){
 if(vi[0][0]==edges.x)
 break;
+}
+
+for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_end(); ++vi,++j){
+
+
 lright={p,vi[0][0]};
 lleft={p,vi[0][1]};
 x=(vi[0][0][0]+vi[0][1][0])/2;
 y=(vi[0][1][1]+vi[0][0][1])/2;
 midpoint={p,Point(x,y)};
-
-for (auto v2 = poly.edges_end()-1; v2 != poly.edges_begin(); --v2){
 count=0;
 
-count+=foo(v2[0],lright,p);
-count+=foo(v2[0],lleft,p);
-count+=foo(v2[0],midpoint,Point(x,y));
+for (auto v2 = poly.edges_end()-1; v2 != poly.edges_begin(); --v2){
+
+count+=inter(v2[0],lright,vi[0][0]);
+
+count+=inter(v2[0],lleft,vi[0][1]);
+
+count+=inter(v2[0],midpoint,Point(x,y));
 
 }
-if(count>0){
- temp.pos=j;
+if(count==0){
+
+ temp.pos=pos+j-1;
  temp.seg=vi[0];
  res.push_back(temp);
 
 }
+if(vi[0][0]==edges.y)
+break;
 }
+
 return res;
 }
-PurpleEdges CheckTheHull(Polygon_2 poly,Point p,int count,Segment_2 l1){
-
-  int j=0;
-  PurpleEdges res;
-  //res.x=p;
-  //res.y=p;
-  Segment_2 midpoint;
-  Segment_2 temp;
-  int count1;
-  for (auto ver = poly.edges_begin(); ver != poly.edges_end(); ++ver){
-    l1={p,ver[0][0]};
-    temp={p,ver[0][1]};
-    count=0;
-    count1=0;
-    int x=(ver[0][0][0]+ver[0][1][0])/2;
-    int y=(ver[0][1][1]+ver[0][0][1])/2;
-    midpoint={p,Point(x,y)};
-    count+=foo(poly.edges_begin()[0],l1,poly.edges_begin()[0][0]);
-    count+=foo(poly.edges_begin()[0],midpoint,Point(x,y));
-    count+=foo(poly.edges_begin()[0],temp,poly.edges_begin()[0][1]);
-
-    if(count==1){
-      res.x=ver[0][1];
-
-    }
-
-    count=0;
-    for (auto vi = poly.edges_end()-1; vi != poly.edges_begin(); --vi,++j)
-      { 
-      count=0;
-      // buffer[j] = vi[0];
-      count+=foo(vi[0],l1,ver[0][0]);
-      count+=foo(vi[0],midpoint,Point(x,y));
-      count+=foo(vi[0],temp,ver[0][1]);
-      
-      if(count==1){
-        break;
-      }
-    }
-
-    if(count==1){
-    
-      res.x=ver[0][1];
-
-    }
-    for (auto vi = poly.edges_begin(); vi != poly.edges_end(); ++vi,++j)
-      {
-        
-      count=0;
-      count+=foo(vi[0],l1,ver[0][0]);
-      count+=foo(vi[0],midpoint,Point(x,y));
-      count+=foo(vi[0],temp,ver[0][1]);
-    if(count==1){
-        break;
-      }
-    }
-    if(count==1){
-      res.y=ver[0][0];
-    }
-  }
-
-  return res;
-
-}
-
-std::vector<ListofSegments> CheckThePolygon(Polygon_2 poly,Point p,int count,Segment_2 l1,Point right,Point left){
-  int j=0;
-  int k=0;
-  Segment_2 midpoint;
-  Segment_2 temp;
-  ListofSegments Temp1;
-  Temp1.pos=0;
-  Temp1.seg=l1;
-  int flag=0;
-  std::vector<ListofSegments> list;
-  bool flagRight=false;
-  bool flagLeft=false;
-  for (auto ver = poly.edges_begin(); ver != poly.edges_end(); ++ver,++j){
-
-    std::cout<<ver[0]<<std::endl;
-      l1={p,ver[0][0]};
-      temp={p,ver[0][1]};
-      count=0;
-      int x=(ver[0][0][0]+ver[0][1][0])/2;
-      int y=(ver[0][1][1]+ver[0][0][1])/2;
-      midpoint={p,Point(x,y)};
-       
-
-     // if(count==0)
-      //    std::cout<<(poly.edges_end()-1)[0]<<" is a visible segment from the right"<<std::endl;
 
 
 
-      
-
-      if(flagRight==false)
-        for (auto vi = poly.edges_end()-1; vi != poly.edges_begin(); --vi)
-        { 
-        // buffer[j] = vi[0];
-          count+=foo(vi[0],l1,ver[0][0]);
-          count+=foo(vi[0],midpoint,Point(x,y));
-          count+=foo(vi[0],temp,ver[0][1]);
-         if(count==1)
-          break;
-        }
-
-     
- 
-
-  if(flagLeft==false)
-    for (auto vi = poly.edges_begin(); vi != poly.edges_end(); ++vi)
-        {
-
-          count+=foo(vi[0],l1,ver[0][0]);
-          count+=foo(vi[0],midpoint,Point(x,y));
-          count+=foo(vi[0],temp,ver[0][1]);
-      if(count==1)
-          break;
-        }
-
- 
-    if(count==0){
-      
- 
-      Temp1.pos=j;
-      Temp1.seg=ver[0];
-      std::cout<<"a"<<std::endl;
-      list.push_back(Temp1);
-    }
-
-if(ver[1][0]==left)
-        flagLeft=true;
-      if(ver[1][1]==right)
-        flagRight=true;
-    if(flagLeft&&flagRight==true){
-    
-    return list;
-    break;
-
-    }
-
-
-}
-
-
-}
-
-
-
-/*
-int main ()
+int ing ()
 {
   Polygon_2 v;
   Polygon_2 hull;
@@ -366,10 +290,8 @@ int main ()
   Point q2(4,1);
   Point q3(4,-1);
   Point q4(7,-3);
-  Point q5(3,-11);
-  Point q6(2,10);
+  Point q5(-2,-11);
   Point q7(10,10);
-  Point q8(8.315,1.901);
   Point q9(-4,2);
   Point q10(6,-6);
   Point q11(-6,-5);
@@ -381,17 +303,23 @@ int main ()
   std::vector <Point> lis;
   std::vector <Point> vec;
 
-  lis.push_back(p);
-  lis.push_back(q);
-  lis.push_back(q1);
-  lis.push_back(q2);
-   lis.push_back(q3);
-  lis.push_back(q4);
-  lis.push_back(q5);
-  lis.push_back(q6);
-  lis.push_back(q7);
 
- 
+
+
+ lis.push_back(q5); 
+
+ lis.push_back(q10); 
+ lis.push_back(q7); 
+
+ lis.push_back(q11); 
+ lis.push_back(q14); 
+ lis.push_back(q2); 
+ lis.push_back(q13); 
+
+lis.push_back(q12); 
+lis.push_back(q3); 
+lis.push_back(q4); 
+
 
 
   std::ostream_iterator< Point>  out( std::cout, "\n" );
@@ -402,11 +330,19 @@ int main ()
 
 
   vec=SortPoints("1a",lis);
+    std::cout<<"Not simple anymore error occured!!!"<<std::endl;
 
   Polygon_2 poly;
   poly.push_back(vec[0]);
   poly.push_back(vec[1]);
   poly.push_back(vec[2]);
+      std::cout<<"Not simple anymore error occured!!!"<<std::endl;
+
+    CGAL::IO::write_polygon_WKT(os2,poly);
+ std::cout<<Pick(poly)<<std::endl;
+ std::cout<<(poly.area())<<std::endl;
+    std::cout<<"Not simple anymore error occured!!!"<<std::endl;
+
  if(!poly.is_simple()){
   
     std::cout<<"Not simple anymore error occured!!!"<<std::endl;
@@ -420,22 +356,34 @@ int main ()
   Segment_2 l1;
   std::vector<ListofSegments> points;
    int pos=1;
-  for(auto v1=vec.begin()+4;v1!=vec.end();++v1,++i){
+  for(auto v1=vec.begin()+3;v1!=vec.end();++v1,++i){
 
-  CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
-  //edges=CheckTheHull(hull,v1[0],count,l1);
- // std::cout<<"For "<<v1[0]<< " " << edges.x<< " "<<edges.y<<std::endl;
-  //points=CheckThePolygon(poly,v1[0],count,l1,edges.x,edges.y);
-  //showlist(points);
+CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
+
+
 edges=CheckHull(hull,v1[0],pos);
 points=ChecPol(poly,v1[0],pos,edges);
-pos=points[0].pos;
-poly.insert(poly.vertices_begin()+points[0].pos,v1[0]);
-hull.clear();
-//std::list<ListofSegments>::iterator it = li.begin();
-//std::cout<<v1[0]<<points[0].pos<<std::endl;
-//poly.insert(poly.vertices_begin()+points[0].pos+1,v1[0]);
 
+//pos=points[0].pos;
+i=0;
+
+ for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+
+   if (points[0].seg==v2[0])
+  { pos=i+1;
+  break;
+  }
+
+
+  }
+
+poly.insert(poly.vertices_begin()+pos,v1[0]);
+ 
+
+
+hull.clear();
+std::cout<<v1[0]<< " point is getting added with the line " <<points[0].seg<<" and pos " <<pos<<std::endl;
+pos=pos-1;
   if(!poly.is_simple()){
   
     std::cout<<"Not simple anymore error occured!!!"<<std::endl;
@@ -445,15 +393,7 @@ hull.clear();
   
   }
   CGAL::IO::write_polygon_WKT(os1,hull);
-//check edges_end()-1,which is the seg to the right of the last point or change the second loop from -2 to -1
-  
-
-
   CGAL::IO::write_polygon_WKT(os,poly);
-
-
   
   return 0;
 }
-
-*/
