@@ -6,6 +6,7 @@
 #include "ConvexHullAlgo.h"
 #include "shared.h"
 #include "onion.h"
+#include "incr.h"
   
 using std::cout;
 using std::endl;
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
     switch (argFlags.algorithm)
     {
     case incremental:
-        generator = new DummyGenerator(list);       //TO DO: chang to something like generator = new Incremental(list)
+        generator = new IncAlgo(list);       //TO DO: chang to something like generator = new Incremental(list)
         break;
     case convex_hull:
         generator = new ConvexHullAlgo(list);
