@@ -14,7 +14,7 @@ typedef std::vector<Point_2> PointList;
 typedef std::vector<Point_2>::iterator PointListIterator;
 typedef Kernel::Segment_2 Segment_2;
 typedef Polygon_2::Edge_const_iterator EdgeIterator;
-typedef std::pair<PointListIterator, PointListIterator> PointPair;
+typedef std::pair<Point_2, Point_2> PointPair;
 typedef std::vector<PointPair> PointPairList;
 typedef std::vector<PointPair>::iterator PointPairListIterator;
 
