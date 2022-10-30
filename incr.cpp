@@ -1,14 +1,15 @@
 #include"incr.h"
 
-
+ 
 IncAlgo::IncAlgo(PointList& list) : PolygonGenerator(list){};
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
-int foo(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kernel> );
+ int foo(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kernel> );
 std::vector<Point> SortPoints(std::string ,std::vector<Point>);
 struct {
       bool operator()(Point a, Point b) const { return a.y() < b.y(); }
+ 
     } customLess;
 
 struct {
