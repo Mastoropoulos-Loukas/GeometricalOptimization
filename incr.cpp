@@ -4,8 +4,9 @@ IncAlgo::IncAlgo(PointList& list, ArgFlags argFlags) : PolygonGenerator(list){th
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
-int foo(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kernel> );
+int inter(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kernel> );
 std::vector<Point> SortPoints(std::string ,std::vector<Point>);
+
 struct {
       bool operator()(Point a, Point b) const { return a.y() < b.y(); }
     } customLess;
@@ -38,14 +39,13 @@ std::ostream_iterator< Point>  out( std::cout, "\n" );
   std::ofstream os2("test12.wkt");
   PurpleEdges edges;
   std::string mode;
-  
-  if(argFlags.initialization==1)
+  if(argFlags.initialization==0)
   mode="1a";
-  else if(argFlags.initialization==2)
+  else if(argFlags.initialization==1)
   mode="2a";
-else   if(argFlags.initialization==3)
+else   if(argFlags.initialization==2)
   mode="1b";
-else   if(argFlags.initialization==4)
+else   if(argFlags.initialization==3)
   mode="2b";
   std::cout<<argFlags.initialization<<std::endl;
   vec=SortPoints(mode,list);
@@ -56,7 +56,7 @@ else   if(argFlags.initialization==4)
   poly.push_back(vec[0]);
   poly.push_back(vec[1]);
   poly.push_back(vec[2]);
-    CGAL::IO::write_polygon_WKT(os2,poly);
+  CGAL::IO::write_polygon_WKT(os2,poly);
 
 
  if(!poly.is_simple()){
@@ -67,6 +67,7 @@ else   if(argFlags.initialization==4)
   int i=0;
   int j=0;
   int count=0;
+  int select=0;
   std::vector<ListofSegments> points;
    int pos=1;
   for(auto v1=vec.begin()+3;v1!=vec.end();++v1,++i){
@@ -74,13 +75,13 @@ else   if(argFlags.initialization==4)
 CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
 
 edges=CheckHull(hull,v1[0],pos);
+
 points=ChecPol(poly,v1[0],pos,edges);
+
 i=0;
-    std::cout<<v1[0]<<std::endl;
- 
+
+    j++;
  for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
-  
- 
    if (points[0].seg==v2[0])
   { pos=i+1;
   break;
@@ -88,10 +89,12 @@ i=0;
 
 
   }
-
+if(select==0)
 poly.insert(poly.vertices_begin()+pos,v1[0]);
-
+//else if(select==1)
+//else if(select==2)
 hull.clear();
+
 pos=pos-1;
   if(!poly.is_simple()){
   
@@ -155,6 +158,7 @@ PurpleEdges res;
 int x;
 int y;
 int count=0;
+
 for (auto vi = hull.edges_begin()+pos+1; vi != hull.edges_begin(); --vi){
 lright={p,vi[0][0]};
 lleft={p,vi[0][1]};
@@ -174,6 +178,10 @@ break;
 
 }
 }
+if(count>1){
+break;
+
+}
 
 }
 
@@ -192,14 +200,17 @@ count+=inter(v2[0],lright,p);
 count+=inter(v2[0],lleft,p);
 count+=inter(v2[0],midpoint,Point(x,y));
 if(count>1){
-
   res.x=vi[0][0];
 break;
 
 }
 }
+if(count>1){
+break;
 
 }
+}
+
 return res;
 }
 
