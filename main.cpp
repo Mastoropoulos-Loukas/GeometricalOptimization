@@ -57,13 +57,13 @@ int main(int argc, char **argv)
     switch (argFlags.algorithm)
     {
     case incremental:
-        generator = new IncAlgo(list, argFlags);       //TO DO: chang to something like generator = new Incremental(list)
+        generator = new IncAlgo(list, argFlags);  
         break;
     case convex_hull:
         generator = new ConvexHullAlgo(list);
         break;
     case onion:
-        generator = new DummyGenerator(list);       //TO DO: chang to something like generator = new Onion(list)
+        generator = new OnionAlgo(list); 
         break;
     default:
         break;
@@ -242,7 +242,7 @@ void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, i
         outfile << *iter << endl;
     outfile << getAlgorithmString(argFlags) << endl;
 
-    double polygonArea = polygon.area();
+    double polygonArea =  polygon.area();
     outfile << "area: " << polygonArea << endl;
     outfile << "ratio: " << convexHullArea / polygonArea << endl;
     outfile << "construction time: " << duration.count() << endl;
