@@ -15,6 +15,8 @@
 #include <CGAL/Polygon_set_2.h>
 #include <CGAL/Boolean_set_operations_2.h>
 
+#include <boost/optional/optional_io.hpp>
+
 #include <vector>
 #include <numeric>
 #include <cstdlib>
@@ -37,5 +39,7 @@ public:
     Polygon_2 generatePolygon();
 
 };
+
+bool isVisible(Segment_2 initialEdge, Polygon_2 poly);
 
 #endif
