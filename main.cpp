@@ -61,7 +61,7 @@ int main(int argc, char **argv)
         generator = new IncAlgo(list, argFlags);  
         break;
     case convex_hull:
-        generator = new ConvexHullAlgo(list);
+        generator = new ConvexHullAlgo(list, argFlags.edgeSelection);
         break;
     case onion:
         generator = new OnionAlgo(list); 

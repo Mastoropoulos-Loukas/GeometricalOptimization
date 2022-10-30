@@ -1,16 +1,21 @@
 #include "ConvexHullAlgo.h"
 #include <boost/optional/optional_io.hpp>
 
-ConvexHullAlgo::ConvexHullAlgo(PointList& list) : PolygonGenerator(list){};
+ConvexHullAlgo::ConvexHullAlgo(PointList& list, EdgeSelection method) : PolygonGenerator(list){this->method = method;};
 
 using CGAL::squared_distance, CGAL::IO::write_multi_point_WKT, CGAL::IO::write_polygon_WKT;
-using std::string;
+using std::string, std::cout, std::endl;
+
+typedef boost::optional<Point_2> OptionalPoint;
 
 template <typename T>
 static void printList(std::vector<T>, std::string);
 bool isReplaceable(Point_2, Segment_2, Polygon_2&);
-Point_2 closestReplaceable(Segment_2, Polygon_2&, PointList&);
+OptionalPoint closestReplaceable(Segment_2, Polygon_2&, PointList&);
 void allClosestReplaceable(Polygon_2&, PointList&, PointPairList&);
+PointPair selectEdge(PointPairList&);
+void updatePolygon(PointPair, Polygon_2&);
+void updateUninserted(PointPair, PointList&);
 
 using std::cout;  using std::endl; using std::string;
 
@@ -28,31 +33,17 @@ Polygon_2 ConvexHullAlgo::generatePolygon(){
     std::sort(temp.begin(), temp.end());
     std::set_difference(list.begin(), list.end(), temp.begin(), temp.end(), std::inserter(uninserted, uninserted.end()));
 
-    // int step = 1;
     PointPairList record;
-    int step = 1;
-    PointList writing;
-    allClosestReplaceable(p, uninserted, record);
 
-    //log out result
-    for(
-        auto it = record.begin();
-        it != record.end();
-        ++it
-    )
+    
+    while(!uninserted.empty())
     {
-        writing.clear();
-        writing.push_back(
-            (*it).first
-        );
-        writing.push_back(
-            (*it).second
-        );
-        string filename = "pointpair_" + std::to_string(step) + ".wkt";
-        std::ofstream dump(filename);
-        write_multi_point_WKT(dump, writing);
-        step++;
+        allClosestReplaceable(p, uninserted, record);
+        PointPair selection = selectEdge(record);
+        updatePolygon(selection, p);
+        updateUninserted(selection, uninserted);
     }
+    
 
     return p;
 }
@@ -63,6 +54,65 @@ static void printList(std::vector<T> list, std::string msg)
     cout << endl << msg << endl;
     for(auto it = list.begin(); it != list.end(); ++it)
         cout << *it << endl;
+}
+
+/*
+    updateUninserted updates <uninserted> list of points based on <selection>
+*/
+void updateUninserted(PointPair selection, PointList& uninserted)
+{
+    int size = uninserted.size();
+    for(
+        auto it = uninserted.begin();
+        it != uninserted.end();
+        ++it
+    )
+    {
+        if(*it == selection.second)
+        {
+            uninserted.erase(it);
+            break;
+        }
+    }
+
+    if(size == uninserted.size())
+    {
+        cout << "updateUninserted: Error! could not find point: " << selection.second << endl;
+    }
+}
+
+/*
+    updatePolygon updates <polygon> based on <selection>
+*/
+void updatePolygon(PointPair selection, Polygon_2& polygon)
+{
+    Point_2 p1 = selection.first;
+    Point_2 p2 = selection.second;
+
+    PointListIterator it;
+    for(
+        it = polygon.begin();
+        it != polygon.end();
+        ++it
+    )
+    {
+        if(*it == p1)break;
+    }
+    polygon.insert(it+1, p2);
+}
+
+/*
+    selectEdge returns an edge and its closest replaceable point from record, based on edge selection method given in costructor
+*/
+PointPair selectEdge(PointPairList& record)
+{
+    if(record.empty())
+    {
+        cout << "selectEdge: Error! record is empty" << endl;
+        return PointPair(Point_2(0,0), Point_2(0,0));
+    }
+
+    return *(record.begin()); //return the first for now
 }
 
 /*
@@ -79,19 +129,20 @@ void allClosestReplaceable(Polygon_2& polygon, PointList& list, PointPairList& r
         {
             Segment_2 seg = *edgeIter;
             Point_2 p1 = seg[0];
-            Point_2 p2 = closestReplaceable(seg, polygon, list);
+            
+            if(OptionalPoint p2 = closestReplaceable(seg, polygon, list))
+                record.push_back( PointPair(p1, p2.value()) );
 
-            record.push_back( PointPair(p1, p2) );
         }
 }
 
 /*
     closestReplaceable returns the closest to <segment> point from <list> that has true value for isReplaceable(point, segment, <polygon>)
 */
-Point_2 closestReplaceable(Segment_2 segment, Polygon_2& polygon, PointList& list)
+OptionalPoint closestReplaceable(Segment_2 segment, Polygon_2& polygon, PointList& list)
 {
     double minDistance;
-    Point_2 minPoint;
+    OptionalPoint minPoint;
 
     PointListIterator iter;
 
@@ -105,10 +156,13 @@ Point_2 closestReplaceable(Segment_2 segment, Polygon_2& polygon, PointList& lis
         if(isReplaceable(*iter, segment, polygon))
         {
             minPoint = *iter;
-            minDistance = squared_distance(segment, minPoint);
+            minDistance = squared_distance(segment, minPoint.value());
             break;
         }
     }
+
+    if(iter == list.end())
+        return minPoint;
 
     //check for replaceable point with smaller distance
     for(

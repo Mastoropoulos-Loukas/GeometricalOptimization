@@ -6,9 +6,10 @@
 
 
 class ConvexHullAlgo : public PolygonGenerator{
-
+private:
+    EdgeSelection method;
 public:
-    ConvexHullAlgo(PointList&);
+    ConvexHullAlgo(PointList&, EdgeSelection);
     virtual Polygon_2 generatePolygon();
 };
 
