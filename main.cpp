@@ -4,7 +4,8 @@
 #include <string.h>
 #include "PolygonGenerator.h"
 #include "shared.h"
-  
+  #include "incr.h"
+
 using std::cout;
 using std::endl;
 using std::string;
@@ -16,22 +17,9 @@ void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, i
 string getAlgorithmString(ArgFlags argFlags);
 
 
-//Dummy class just pushes all point in order to the polygon
-class DummyGenerator: private PolygonGenerator{
-    
-public:
-    DummyGenerator(PointList& list): PolygonGenerator(list){};
 
-    Polygon_2 generatePolygon(){
-        Polygon_2 p;
-        for(PointListIterator iter = list.begin(); iter != list.end(); ++iter)
-            p.push_back(*iter);
 
-        return p;
-    };
-};
-
-int temp(int argc, char **argv)
+int main(int argc, char **argv)
 {
     ArgFlags argFlags;
     handleArgs(argFlags, argc, argv);
@@ -51,7 +39,16 @@ int temp(int argc, char **argv)
 
     //calculate convex hull
     Polygon_2 p, chp;
-    DummyGenerator generator(list);
+    PolygonGenerator *generator;
+    switch (argFlags.algorithm)
+    {
+    case incremental:
+        generator = new IncAlgo(list);       //TO DO: chang to something like generator = new Incremental(list)
+        break;
+    
+    default:
+        break;
+    }
 
     CGAL::convex_hull_2(list.begin(), list.end(), std::back_inserter(result));
     for(auto it = result.begin(); it != result.end(); ++it) chp.push_back(*it);
@@ -59,7 +56,7 @@ int temp(int argc, char **argv)
     //calculate polygon
     auto start = std::chrono::high_resolution_clock::now();
 
-    p = generator.generatePolygon();
+    p = (*generator).generatePolygon(argFlags);
     
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
