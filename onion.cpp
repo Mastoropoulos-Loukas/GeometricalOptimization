@@ -30,6 +30,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
     if(points.size()==3 && CGAL::collinear(points[0],points[1],points[2])){
       std::vector<Point_2>::iterator it = points.begin();
       points.erase(it+1); //Check for potential trouble
+      initPointsSize;
     }else{
       std::vector<std::size_t> indices(points.size()), out;
       std::iota(indices.begin(), indices.end(),0);
@@ -72,26 +73,26 @@ Polygon_2 OnionAlgo::generatePolygon(){
   }
   COUT<<ENDL;
 
-  COUT<<ENDL<<"PRINTING ALLPOLYS"<<ENDL;
+  // COUT<<ENDL<<"PRINTING ALLPOLYS"<<ENDL;
   for(int i =0; i<allPolys.size();i++){
 
-    std::vector<Segment_2> segVec;
-    // for(const Segment_2& e  : allPolys[i].edges()){
-    //   segVec.push_back(e);
-    // }
-    vecAllPolys.push_back(segVec);
+    // std::vector<Segment_2> segVec;
+    // // for(const Segment_2& e  : allPolys[i].edges()){
+    // //   segVec.push_back(e);
+    // // }
+    // vecAllPolys.push_back(segVec);
 
-    COUT<<ENDL;
+    COUT<<"Polygon at depth: "<< i <<" " << allPolys[i]<<ENDL;
   }
 
   // std::cout<<"ALL POLYGONS AS VECTOR"<<ENDL;
-  for(int i =0; i<vecAllPolys.size();i++){
-    for(int j=0;j<vecAllPolys[i].size();j++){
-      COUT<<"("<<vecAllPolys[i][j][0]<<")"<<" ";
-    }
+  // for(int i =0; i<vecAllPolys.size();i++){
+  //   for(int j=0;j<vecAllPolys[i].size();j++){
+  //     COUT<<"("<<vecAllPolys[i][j][0]<<")"<<" ";
+  //   }
     
-    COUT<<ENDL;
-  }
+  //   COUT<<ENDL;
+  // }
 
 
   COUT<<ENDL;
@@ -441,7 +442,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
             }                        
           }
           else{
-                        COUT<<"STUPID CONDITION 4"<<ENDL;
+                        COUT<<"STUPID CONDITION 5"<<ENDL;
             for(int ind=indexLamda;ind<allPolys[i+1].size();ind++){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
@@ -470,8 +471,8 @@ Polygon_2 OnionAlgo::generatePolygon(){
         }
 
       }while((indexLamda-indexClosestK!=1 && indexLamda-indexClosestK!=-1 && indexLamda-indexClosestK!=allPolys[i+1].size()-1 
-        && indexLamda-indexClosestK!=-(allPolys[i+1].size()-1)) || (indexClosestK==initLam || indexClosestK==initK ||
-        indexLamda==initLam || indexLamda==initK) );
+        && indexLamda-indexClosestK!=-(allPolys[i+1].size()-1)) || (indexClosestK==initLam && indexClosestK==initK ) ||
+        (indexLamda==initLam && indexLamda==initK) );
 
 
       if( indexLamda-indexClosestK==-1 ||indexLamda-indexClosestK==allPolys[i+1].size()-1){
