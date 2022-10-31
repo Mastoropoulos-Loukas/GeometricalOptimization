@@ -1,5 +1,6 @@
 #include "ConvexHullAlgo.h"
 #include <boost/optional/optional_io.hpp>
+#include <random>
 
 ConvexHullAlgo::ConvexHullAlgo(PointList& list, EdgeSelection method) : PolygonGenerator(list){this->method = method;};
 
@@ -13,7 +14,7 @@ static void printList(std::vector<T>, std::string);
 bool isReplaceable(Point_2, Segment_2, Polygon_2&);
 OptionalPoint closestReplaceable(Segment_2, Polygon_2&, PointList&);
 void allClosestReplaceable(Polygon_2&, PointList&, PointPairList&);
-PointPair selectEdge(PointPairList&);
+PointPair selectEdge(PointPairList&, EdgeSelection, Polygon_2&);
 void updatePolygon(PointPair, Polygon_2&);
 void updateUninserted(PointPair, PointList&);
 
@@ -34,12 +35,12 @@ Polygon_2 ConvexHullAlgo::generatePolygon(){
     std::set_difference(list.begin(), list.end(), temp.begin(), temp.end(), std::inserter(uninserted, uninserted.end()));
 
     PointPairList record;
-
+    std::srand(time(NULL));
     
     while(!uninserted.empty())
     {
         allClosestReplaceable(p, uninserted, record);
-        PointPair selection = selectEdge(record);
+        PointPair selection = selectEdge(record, this->method, p);
         updatePolygon(selection, p);
         updateUninserted(selection, uninserted);
     }
@@ -104,15 +105,137 @@ void updatePolygon(PointPair selection, Polygon_2& polygon)
 /*
     selectEdge returns an edge and its closest replaceable point from record, based on edge selection method given in costructor
 */
-PointPair selectEdge(PointPairList& record)
+PointPair selectEdge(PointPairList& record, EdgeSelection method, Polygon_2& polygon)
 {
-    if(record.empty())
+
+    //if not random selection, we need to map record to polygon edges
+    PointPairList edges;
+
+    //get Polygon edges
+    if(method != randomSelection)
     {
-        cout << "selectEdge: Error! record is empty" << endl;
-        return PointPair(Point_2(0,0), Point_2(0,0));
+        for(
+            auto it = record.begin();
+            it != record.end();
+            ++it
+        )
+        {
+            Point_2 p1 = (*it).first;
+            for(
+                auto iter = polygon.vertices_begin();
+                iter != polygon.vertices_end();
+                ++iter
+            )
+            {
+                if(*iter == p1)
+                {
+                    if(iter == polygon.vertices_end() - 1)
+                    {
+                        edges.push_back(PointPair(p1, *(polygon.vertices_begin())));
+                        break;
+                    }
+                    edges.push_back(PointPair(p1, *(iter+1)));
+                    break;
+                }
+            }
+        }
+        if(record.size() != edges.size())
+        {
+            cout << "selectEdge: Error! Did not find edge for every record" << endl;
+        }
     }
 
-    return *(record.begin()); //return the first for now
+    Polygon_2 triangle;
+
+    if(method == randomSelection){
+        int choise = std::rand() % record.size();
+        return *(record.begin() + choise);
+    }
+    else if(method == EdgeSelection::min){
+        
+        triangle.clear();
+        PointPair minPair = *record.begin();
+
+        Point_2 p0 = minPair.first;
+        Point_2 p1 = minPair.second;
+        Point_2 p2 = (*edges.begin()).second;
+        triangle.push_back(p0);triangle.push_back(p1);triangle.push_back(p2);
+
+        double minArea = std::abs(triangle.area());
+
+        int size = record.size();
+        auto baseRecord = record.begin();
+        auto baseEdges = edges.begin();
+        for(
+            int i = 1;
+            i < size;
+            ++i
+        )
+        {
+            triangle.clear();
+
+            PointPair currPair = *(baseRecord+i);
+            PointPair currEdge = *(baseEdges+i);
+
+            Point_2 p0 = currPair.first;
+            Point_2 p1 = currPair.second;
+            Point_2 p2 = currEdge.second;
+
+            triangle.push_back(p0);triangle.push_back(p1);triangle.push_back(p2);
+
+            double currArea = std::abs(triangle.area());
+            if(currArea < minArea)
+            {
+                minArea = currArea;
+                minPair = currPair;
+            }
+        }
+        
+        return minPair;
+    }
+    else if(method == EdgeSelection::max){
+        triangle.clear();
+        PointPair maxPair = *record.begin();
+
+        Point_2 p0 = maxPair.first;
+        Point_2 p1 = maxPair.second;
+        Point_2 p2 = (*edges.begin()).second;
+        triangle.push_back(p0);triangle.push_back(p1);triangle.push_back(p2);
+
+        double maxArea = std::abs(triangle.area());
+
+        int size = record.size();
+        auto baseRecord = record.begin();
+        auto baseEdges = edges.begin();
+        for(
+            int i = 1;
+            i < size;
+            ++i
+        )
+        {
+            triangle.clear();
+
+            PointPair currPair = *(baseRecord+i);
+            PointPair currEdge = *(baseEdges+i);
+
+            Point_2 p0 = currPair.first;
+            Point_2 p1 = currPair.second;
+            Point_2 p2 = currEdge.second;
+
+            triangle.push_back(p0);triangle.push_back(p1);triangle.push_back(p2);
+
+            double currArea = std::abs(triangle.area());
+            if(currArea > maxArea)
+            {
+                maxArea = currArea;
+                maxPair = currPair;
+            }
+        }
+        return maxPair;
+    }
+
+    cout << "selectEdge: Error! should not reach this point" << endl;
+    return *record.begin();
 }
 
 /*
