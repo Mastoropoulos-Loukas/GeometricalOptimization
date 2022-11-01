@@ -1,6 +1,5 @@
 #include"incr.h"
 #include <climits>
-#include "ConvexHullAlgo.h"
 
 IncAlgo::IncAlgo(PointList& list, ArgFlags argFlags) : PolygonGenerator(list){this->argFlags = argFlags;};
 
