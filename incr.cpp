@@ -1,10 +1,15 @@
 #include"incr.h"
 #include <climits>
+#include "ConvexHullAlgo.h"
+
 IncAlgo::IncAlgo(PointList& list, ArgFlags argFlags) : PolygonGenerator(list){this->argFlags = argFlags;};
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                          Point;
+
 int inter(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kernel> );
+bool isReplaceable(Point_2, Segment_2, Polygon_2&);
+
 std::vector<Point> SortPoints(std::string ,std::vector<Point>);
 
 struct {
@@ -21,109 +26,106 @@ struct PurpleEdges{
 
 };
 
-struct ListofSegments{
 
-   int pos;
-   Segment_2 seg;  
+std::vector<Segment_2> CheckPol(Polygon_2 ,Point ,int ,PurpleEdges);
 
-};
-std::vector<ListofSegments> ChecPol(Polygon_2 ,Point ,int ,PurpleEdges);
 PurpleEdges CheckHull(Polygon_2 ,Point ,int );
 
 
-int Edgeselection(Polygon_2 poly,Point p,std::vector<ListofSegments> segs,int mode){
-int i=0;
-int pos=0;
-Polygon_2 triangle;
-Segment_2 seg;
-srand ( time(NULL) );
-int temp;
-if(segs.size()>2)
-temp=rand()%segs.size();
-else
-temp=0;
-if(mode==0)
-for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+int Edgeselection(Polygon_2 poly,Point p,std::vector<Segment_2> segs,int mode){
+  int i=0;
+  int pos=0;
+  Polygon_2 triangle;
+  Segment_2 seg;
+  srand ( time(NULL) );
+  int temp;
+  if(segs.size()>2)
+    temp=rand()%segs.size();
+  else
+    temp=0;
+  if(mode==0)
+    for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
 
-  seg=segs[temp].seg;
+      seg=segs[temp];
 
 
-   if (seg==v2[0])
-  { pos=i+1;
-  return pos;
+      if (seg==v2[0])
+        { pos=i+1;
+        return pos;
+       }
+
+
+    }
+  i=0;
+  if(mode==2){
+    int max=-1;
+    for(auto v2=segs.begin();v2!=segs.end();++v2){
+
+    triangle.push_back(p);
+    triangle.push_back(v2[0][0]);
+    triangle.push_back(v2[0][1]);
+    if(max<=abs(triangle.area())){
+      max=abs(triangle.area());
+      seg=v2[0];
+    }   
+    }
+    for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+      if (seg==v2[0])
+      { pos=i+1;
+      return pos;
+     }
+
+
+    } 
+
+  }
+  i=0;
+  if(mode==1){
+    int min=INT_MAX;
+    for(auto v2=segs.begin();v2!=segs.end();++v2){
+
+    triangle.push_back(p);
+    triangle.push_back(v2[0][0]);
+    triangle.push_back(v2[0][1]);
+    if(min>=abs(triangle.area())){
+      min=abs(triangle.area());
+      seg=v2[0];
+    }
+    }
+
+  for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
+    if (seg==v2[0])
+      { pos=i+1;
+
+        return pos;
+     }
+
+
   }
 
 
-}
-i=0;
-if(mode==2){
-int max=-1;
-for(auto v2=segs.begin();v2!=segs.end();++v2){
-
-triangle.push_back(p);
-triangle.push_back(v2[0].seg[0]);
-triangle.push_back(v2[0].seg[1]);
-if(max<=abs(triangle.area())){
-max=abs(triangle.area());
-seg=v2[0].seg;
-}
-}
-for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
-   if (seg==v2[0])
-  { pos=i+1;
-  return pos;
   }
 
 
-}
-
-}
-i=0;
-if(mode==1){
-int min=INT_MAX;
-for(auto v2=segs.begin();v2!=segs.end();++v2){
-
-triangle.push_back(p);
-triangle.push_back(v2[0].seg[0]);
-triangle.push_back(v2[0].seg[1]);
-if(min>=abs(triangle.area())){
-min=abs(triangle.area());
-seg=v2[0].seg;
-}
-}
-
-for(auto v2=poly.edges_begin();v2!=poly.edges_end();++v2,++i){
-   if (seg==v2[0])
-  { pos=i+1;
-
-  return pos;
   }
-
-
-}
-
-
-}
-
-
-}
 Polygon_2 IncAlgo::generatePolygon(){
 
   std::vector <Point> vec;
-std::ostream_iterator< Point>  out( std::cout, "\n" );
+  std::ostream_iterator< Point>  out( std::cout, "\n" );
   std::ofstream os("test.wkt");
   std::ofstream os1("test1.wkt");
   std::ofstream os2("test12.wkt");
   PurpleEdges edges;
   std::string mode;
   if(argFlags.initialization==0)
-  mode="1a";
+    mode="1a";
   else if(argFlags.initialization==1)
-  mode="2a";
+    mode="2a";
 else   if(argFlags.initialization==2)
-  mode="1b";
+   mode="1b";
 else   if(argFlags.initialization==3)
-  mode="2b";
+   mode="2b";
+  
   vec=SortPoints(mode,list);
 
   Polygon_2 poly;
@@ -135,7 +137,7 @@ else   if(argFlags.initialization==3)
   CGAL::IO::write_polygon_WKT(os2,poly);
  
 
- if(!poly.is_simple()){
+  if(!poly.is_simple()){
   
     std::cout<<"Not simple anymore error occured!!!"<<std::endl;
 
@@ -144,32 +146,34 @@ else   if(argFlags.initialization==3)
   int j=0;
   int count=0;
   int select=0;
-  std::vector<ListofSegments> points;
-   int pos=1;
+  std::vector<Segment_2> points;
+  int pos=1;
   for(auto v1=vec.begin()+3;v1!=vec.end();++v1,++i){
-CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
+    CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
+//   std::cout<<v1[0]<<std::endl;
+    edges=CheckHull(hull,v1[0],pos);
 
-edges=CheckHull(hull,v1[0],pos);
-
-points=ChecPol(poly,v1[0],pos,edges);
-i=0;
+    points=CheckPol(poly,v1[0],pos,edges);
+    i=0;
 
     j++;
-pos=Edgeselection(poly,v1[0],points,argFlags.edgeSelection);
-poly.insert(poly.vertices_begin()+pos,v1[0]);
+    if(!points.empty()){
+      pos=Edgeselection(poly,v1[0],points,argFlags.edgeSelection);
+      poly.insert(poly.vertices_begin()+pos,v1[0]);
+      pos=pos-1;
+    }
+    }
+  hull.clear();
 
-hull.clear();
- 
-
-pos=pos-1;
   if(!poly.is_simple()){
   
     std::cout<<"Not simple anymore error occured!!!"<<std::endl;
 
   }
 
-  }
-      CGAL::IO::write_polygon_WKT(os2,poly);
+  
+  
+  CGAL::IO::write_polygon_WKT(os2,poly);
 
   return poly;
 
@@ -195,7 +199,10 @@ int inter(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point
   return count;
 }
 
-
+bool replace(CGAL::Segment_2<Kernel> seg, Polygon_2 poly, CGAL::Point_2<Kernel> p)
+{
+ return (isReplaceable(p, seg, poly));
+}
 
 
 
@@ -217,145 +224,84 @@ return v;
 PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
 
-Segment_2 lright;
-Segment_2 midpoint;
-Segment_2 lleft;
-PurpleEdges res;
-int x;
-int y;
-int count=0;
+  Segment_2 lright;
+  Segment_2 midpoint;
+  Segment_2 lleft;
+  PurpleEdges res;
+  int x;
+  int y;
+  int count=0;
+  bool test;
 
-for (auto vi = hull.edges_begin()+pos+1; vi != hull.edges_begin(); --vi){
-lright={p,vi[0][0]};
-lleft={p,vi[0][1]};
-x=(vi[0][0][0]+vi[0][1][0])/2;
-y=(vi[0][1][1]+vi[0][0][1])/2;
-    midpoint={p,Point(x,y)};
-count=0;   
+  for (auto vi = hull.edges_begin()+pos+1; vi != hull.edges_begin(); --vi){
 
-for (auto v2 = hull.edges_end()-1; v2 != hull.edges_begin(); --v2){
-count+=inter(v2[0],lright,p);
-count+=inter(v2[0],lleft,p);
-count+=inter(v2[0],midpoint,Point(x,y));
-if(count>=1){
 
- 
-break;
-
-}
-}
-if(count>=1){
-
+   
+ test=isReplaceable(p,vi[0],hull);
+    
+    if(test==false){
     res.y=vi[0][0];
+    break;
 
-break;
+  }
 
-}
+  }
 
-}
+  for (auto vi = hull.edges_begin()+pos; vi != hull.edges_end(); ++vi){
 
-for (auto vi = hull.edges_begin()+pos; vi != hull.edges_end(); ++vi){
+  
+  test=isReplaceable(p,vi[0],hull);
+    
+    if(test==false){
+      res.x=vi[0][0];
+  break;
 
-lright={p,vi[0][0]};
-lleft={p,vi[0][1]};
-x=(vi[0][0][0]+vi[0][1][0])/2;
-y=(vi[0][1][1]+vi[0][0][1])/2;
-midpoint={p,Point(x,y)};
-count=0;
-
-for (auto v2 = hull.edges_end()-1; v2 != hull.edges_begin(); --v2){
-
-count+=inter(v2[0],lright,p);
-count+=inter(v2[0],lleft,p);
-count+=inter(v2[0],midpoint,Point(x,y));
-if(count>=1){
-
-break;
-
-}
-}
-if(count>=1){
-    res.x=vi[0][0];
-
-
-break;
-
-}
-}
-
-return res;
+  }
+  }
+  return res;
 }
 
 
-std::vector<ListofSegments> ChecPol(Polygon_2 poly,Point p,int pos,PurpleEdges edges){
+std::vector<Segment_2> CheckPol(Polygon_2 poly,Point p,int pos,PurpleEdges edges){
 
-Segment_2 lright;
-Segment_2 midpoint;
-Segment_2 lleft;
-std::vector<ListofSegments> res;
-double x=0;
-double y=0;
-int count=0;
-ListofSegments temp;
-int i=0;
-int j=0;
-for (auto vi = poly.edges_begin()+pos; vi != poly.edges_begin(); --vi,++i){
-
-lright={p,vi[0][0]};
-lleft={p,vi[0][1]};
-x=(vi[0][0][0]+vi[0][1][0])/2;
-y=(vi[0][1][1]+vi[0][0][1])/2;
-    midpoint={p,Point(x,y)};
-count=0;
-
-for (auto v2 = poly.edges_end()-1; v2 != poly.edges_begin(); --v2){
-count+=inter(v2[0],lright,vi[0][0]);
-count+=inter(v2[0],lleft,vi[0][1]);
-
-count+=inter(v2[0],midpoint,Point(x,y));
-
-}
-if(count==0){
- temp.pos=i+pos+1;
- temp.seg=vi[0];
- res.push_back(temp);
-}
-if(vi[0][1]==edges.x)
-break;
-}
-
-for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_end(); ++vi,++j){
+  Segment_2 lright;
+  Segment_2 midpoint;
+  Segment_2 lleft;
+  std::vector<Segment_2> res;
+  double x=0;
+  double y=0;
+  int count=0;
+  bool test;
+  int i=0;
+  int j=0;
+  for (auto vi = poly.edges_begin()+pos; vi != poly.edges_begin(); --vi,++i){
 
 
-lright={p,vi[0][0]};
-lleft={p,vi[0][1]};
-x=(vi[0][0][0]+vi[0][1][0])/2;
-y=(vi[0][1][1]+vi[0][0][1])/2;
-midpoint={p,Point(x,y)};
-count=0;
+    
+    test=isReplaceable(p,vi[0],poly);
+    
+    if(test==true){
+ 
+      res.push_back(vi[0]);
+    }
+    if(vi[0][1]==edges.x)
+      break;
+    }
 
-for (auto v2 = poly.edges_end()-1; v2 != poly.edges_begin(); --v2){
+  for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_end(); ++vi,++j){
 
-count+=inter(v2[0],lright,vi[0][0]);
 
-count+=inter(v2[0],lleft,vi[0][1]);
 
-count+=inter(v2[0],midpoint,Point(x,y));
+ test=isReplaceable(p,vi[0],poly);
+    
+    if(test==true){
+      res.push_back(vi[0]);
+    }
 
-}
+    if(vi[0][1]==edges.y)
+    break;
+  }
 
-if(count==0){
-
- temp.pos=pos+j-1;
- temp.seg=vi[0];
- res.push_back(temp);
-
-}
-
-if(vi[0][1]==edges.y)
-break;
-}
-
-return res;
+  return res;
 }
 
