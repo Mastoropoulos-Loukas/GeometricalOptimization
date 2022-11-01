@@ -173,7 +173,6 @@ else   if(argFlags.initialization==3)
   
   
   CGAL::IO::write_polygon_WKT(os2,poly);
-
   return poly;
 
 
