@@ -146,6 +146,10 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
     COUT<<"DEPTH IS "<<i<<ENDL;
 
+    // if(mPlus<m && mPlus!=0 && m!=finalPoly.size()-1){
+    //   std::swap(m,mPlus);
+    // }
+
     Point_2 mVertex;
     Point_2 mVertexPlus;
 
@@ -192,17 +196,28 @@ Polygon_2 OnionAlgo::generatePolygon(){
       if(isVisible(edgeInPoly,allPolys[i+1])){
         COUT<<"Lamda "<< lamda<<" with index "<< indexLamda<<" is visible from mPlus "<<mVertexPlus<<" with index "<<mPlus<<ENDL;
       }else{
+        int initM=m;
+        int initMPlus=mPlus;
         COUT<<"Lamda "<< lamda<<" with index "<< indexLamda<<" is NOT visible from mPlus "<<mVertexPlus<<" with index "<<mPlus<<ENDL;        
         
         if((m<mPlus && m!=finalPoly.size()-1) ||(m>mPlus && m==finalPoly.size()-1) ){
           mPlus=previousIndex(m,finalPoly);
 
-        }else{
+        }
+        else{
           mPlus=nextIndex(m,finalPoly);     
         }
+        mVertexPlus=finalPoly.vertex(mPlus);        
         
-        indexLamda=previousIndex(indexClosestK,allPolys[i+1]);
-        mVertexPlus=finalPoly.vertex(mPlus);
+        Segment_2 newMPlusLamda(mVertexPlus,lamda);
+
+        if((initMPlus<initM && !isVisible(newMPlusLamda,allPolys[i+1])) ||
+        (initMPlus>initM && !isVisible(newMPlusLamda,allPolys[i+1]))){
+          indexLamda=previousIndex(indexClosestK,allPolys[i+1]);
+        }
+
+
+
         lamda=allPolys[i+1].vertex(indexLamda);
 
 
@@ -283,10 +298,22 @@ Polygon_2 OnionAlgo::generatePolygon(){
           }
 
         }else if(m>mPlus && mPlus!=0 && m!=0){
+          COUT<<"WASSUP SUCKERS?"<<ENDL;
           if(indexClosestK==0){
             for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }            
+          }
+          if((indexClosestK!=0 && indexLamda!=allPolys[i+1].size()-1) || (indexClosestK!=allPolys[i+1].size()-1 && indexLamda!=0)){
+            if(indexClosestK>indexLamda){
+              for(int ind=indexLamda;ind>=0;ind--){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }
+              for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }
+               
+            }
           }
         }else if(m>mPlus && mPlus==0){
           COUT<<"GOT HERE MOFOS"<<ENDL;
@@ -414,13 +441,21 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
           if(indexClosestK>indexLamda && indexLamda!=0){
             COUT<<"STUPID CONDITION 1"<<ENDL;
-            for(int ind=indexClosestK;ind<allPolys[i+1].size();ind++){
+            // for(int ind=indexClosestK;ind<allPolys[i+1].size();ind++){
+            //   toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            // }
+
+            // for(int ind=0;ind<=indexLamda;ind++){
+            //   toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            // }
+            for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
 
-            for(int ind=0;ind<=indexLamda;ind++){
+            for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
-            } 
+            }
+
           }else if(indexLamda==0){
                         COUT<<"STUPID CONDITION 2"<<ENDL;
             for(int ind=indexLamda;ind<allPolys[i+1].size();ind++){
@@ -469,10 +504,15 @@ Polygon_2 OnionAlgo::generatePolygon(){
         if((allPolys[i+1].size()) %2 && indexLamda==indexClosestK){
           indexLamda=nextIndex(indexLamda,allPolys[i+1]);
         }
+        if((indexClosestK==initLam && indexClosestK==initK ||
+        indexLamda==initLam && indexLamda==initK)){
+          COUT<<"PROBLEM"<<ENDL;
+
+        }
 
       }while((indexLamda-indexClosestK!=1 && indexLamda-indexClosestK!=-1 && indexLamda-indexClosestK!=allPolys[i+1].size()-1 
-        && indexLamda-indexClosestK!=-(allPolys[i+1].size()-1)) || (indexClosestK==initLam && indexClosestK==initK ) ||
-        (indexLamda==initLam && indexLamda==initK) );
+        && indexLamda-indexClosestK!=-(allPolys[i+1].size()-1)) || (indexClosestK==initK && indexLamda==initLam) ||
+        (indexLamda==initK && indexClosestK==initLam) );
 
 
       if( indexLamda-indexClosestK==-1 ||indexLamda-indexClosestK==allPolys[i+1].size()-1){
@@ -481,6 +521,10 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
       COUT<<"NEW INDEX K IS "<<indexClosestK<<ENDL;
       COUT<<"NEW INDEX L IS "<<indexLamda<<ENDL;
+
+      // if(i==check){
+      //   CGAL::IO::write_polygon_WKT(os,finalPoly);
+      // } 
 
       int kInPoly=0;
       int lamInPoly=0;
@@ -542,15 +586,57 @@ Polygon_2 OnionAlgo::generatePolygon(){
         }
 
         Segment_2 pointLine(*(veit+1),points[j]);
-        
         if(isVisible(pointLine,finalPoly)){
           COUT<<"Point is Visible "<<ENDL;
           finalPoly.insert(veit+1,points[j]);
         }else{
+          Segment_2 lineFinalPoly(*(veit),points[j]);          
           COUT<<"SUCKS to be me "<<ENDL;
-          finalPoly.insert(veit,points[j]);
+          if(isVisible(lineFinalPoly,finalPoly)){
+            finalPoly.insert(veit,points[j]);
+          }else{
+            // vres to kontinetero simeio sto teleytaio convexHull
+                      COUT<<"SUCKS to be me AGAIN"<<ENDL;
+            dist=INFINITY;
+            for(int k=0;k<allPolys[i].size();k++){
+              Point_2 vert=allPolys[i].vertex(k);
+              double vertDist=sqrt(((vert[0]-points[j][0])*(vert[0]-points[j][0]))+((vert[1]-points[j][1])*(vert[1]-points[j][1])));
+                
+              if(vertDist<dist){
+                dist=vertDist;
+                closePoint=vert;
+                indexClosePoint=k;
+              }        
+            }
+            
+            auto veit2=finalPoly.vertices_begin();
+            while(*veit2!=closePoint){
+              if(veit2+1!=finalPoly.vertices_end()){
+                veit2++;
+              }else{
+                veit2=finalPoly.vertices_begin();
+              }
+
+            }
+
+            Segment_2 pointLine2(*(veit2+1),points[j]);
+            if(isVisible(pointLine2,finalPoly)){
+              COUT<<"HOORAY!!!!!"<<ENDL;
+              finalPoly.insert(veit2+1,points[j]); 
+            }else{
+              COUT<<"TOUGH LUCK.."<<ENDL;
+              finalPoly.insert(veit2,points[j]);
+            }
+                       
+          }
+
         }
-     
+
+        
+        // if(j==check){
+        //   CGAL::IO::write_polygon_WKT(os,finalPoly);
+        // }
+      
       }
     }
       // if(i==check){
