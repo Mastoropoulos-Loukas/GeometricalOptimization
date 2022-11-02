@@ -133,7 +133,6 @@ else   if(argFlags.initialization==3)
   poly.push_back(vec[0]);
   poly.push_back(vec[1]);
   poly.push_back(vec[2]);
-  CGAL::IO::write_polygon_WKT(os2,poly);
  
 
   if(!poly.is_simple()){
@@ -149,7 +148,6 @@ else   if(argFlags.initialization==3)
   int pos=1;
   for(auto v1=vec.begin()+3;v1!=vec.end();++v1,++i){
     CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
-//   std::cout<<v1[0]<<std::endl;
     edges=CheckHull(hull,v1[0],pos);
 
     points=CheckPol(poly,v1[0],pos,edges);
@@ -235,10 +233,10 @@ PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
 
    
- test=isReplaceable(p,vi[0],hull);
+    test=isReplaceable(p,vi[0],hull);
     
     if(test==false){
-    res.y=vi[0][0];
+      res.y=vi[0][0];
     break;
 
   }
@@ -248,7 +246,7 @@ PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
   for (auto vi = hull.edges_begin()+pos; vi != hull.edges_end(); ++vi){
 
   
-  test=isReplaceable(p,vi[0],hull);
+    test=isReplaceable(p,vi[0],hull);
     
     if(test==false){
       res.x=vi[0][0];
@@ -256,7 +254,7 @@ PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
   }
   }
-  return res;
+    return res;
 }
 
 
