@@ -71,10 +71,10 @@ Polygon_2 OnionAlgo::generatePolygon(){
   }
   COUT<<ENDL;
 
-  // COUT<<ENDL<<"PRINTING ALLPOLYS"<<ENDL;
+  COUT<<ENDL<<"PRINTING ALLPOLYS"<<ENDL;
   for(int i =0; i<allPolys.size();i++){
     notColpoints+=allPolys[i].size();
-    COUT<<"Polygon at depth: "<< i <<" " << allPolys[i]<<ENDL;
+    COUT<<"=>Polygon at depth: "<< i <<" " << allPolys[i]<<ENDL;
   }
 
 
@@ -122,9 +122,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
     COUT<<"DEPTH IS "<<i<<ENDL;
 
-    // if(mPlus<m && mPlus!=0 && m!=finalPoly.size()-1){
-    //   std::swap(m,mPlus);
-    // }
 
     Point_2 mVertex;
     Point_2 mVertexPlus;
@@ -399,10 +396,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
             }
           }else if(indexClosestK<indexLamda && indexLamda==allPolys[i+1].size()-1 && indexClosestK!=0){
             
-            
-            // for(int ind=indexLamda;ind>=0;ind--){ // if everything else fails
-            //   toBeAdded.push_back(allPolys[i+1].vertex(ind));
-            // }
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
@@ -431,13 +424,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
           if(indexClosestK>indexLamda && indexLamda!=0){
             COUT<<"STUPID CONDITION 1"<<ENDL;
-            // for(int ind=indexClosestK;ind<allPolys[i+1].size();ind++){
-            //   toBeAdded.push_back(allPolys[i+1].vertex(ind));
-            // }
 
-            // for(int ind=0;ind<=indexLamda;ind++){
-            //   toBeAdded.push_back(allPolys[i+1].vertex(ind));
-            // }
             for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
