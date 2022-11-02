@@ -2,6 +2,8 @@
 #include "onion.h"
 #include <time.h>
 
+
+bool pointInPolygon(Point_2 point,Polygon_2 poly);
 int nextIndex(int,Polygon_2);
 int previousIndex(int,Polygon_2);
 
@@ -16,7 +18,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
   std::vector<Point_2> points=list;
   std::vector<Polygon_2> allPolys;
 
-  std::vector<std::vector<Segment_2>> vecAllPolys;
 
   std::ofstream os("yelp.wkt");
 
@@ -25,12 +26,13 @@ Polygon_2 OnionAlgo::generatePolygon(){
   }
 
   int initPointsSize=points.size();
-  
+  int notColpoints=0;
+
   while(points.size()>2){
     if(points.size()==3 && CGAL::collinear(points[0],points[1],points[2])){
       std::vector<Point_2>::iterator it = points.begin();
       points.erase(it+1); //Check for potential trouble
-      initPointsSize;
+      initPointsSize--;
     }else{
       std::vector<std::size_t> indices(points.size()), out;
       std::iota(indices.begin(), indices.end(),0);
@@ -45,63 +47,37 @@ Polygon_2 OnionAlgo::generatePolygon(){
       for( std::size_t i : out){
 
         poly.push_back(points[i]); // push the point to a polygon
-               
-        std::cout << "points[" << i << "] = " <<"("<<points[i]<<") " << std::endl;
-
         points[i]=Point_2(-99,-99);   // mark the convex hull points
   
-    }
+      }
       allPolys.push_back(poly);
 
     // we find the points that do not belong to the convexHull
       for(int i =0; i<points.size();i++){
-        if(points[i]!=Point_2(-99,-99)){ // if a point is left unmarked this means that it does not belong to the convexHull
+        if(points[i]!=Point_2(-99,-99) && !pointInPolygon(points[i],poly)){ // if a point is left unmarked this means that it does not belong to the convexHull
           pointsLeftAct.push_back(points[i]); // push it to the pointsLeftAct
         }
       }
-
-      COUT<<ENDL;
     
       points=pointsLeftAct;
     }
-  
+
   }
   
   std::cout<<"FINAL Points LEFT"<<ENDL;
   for(int i =0; i<points.size();i++){
+    notColpoints++;
     COUT<<"("<<points[i]<<")"<<" ";
   }
   COUT<<ENDL;
 
   // COUT<<ENDL<<"PRINTING ALLPOLYS"<<ENDL;
   for(int i =0; i<allPolys.size();i++){
-
-    // std::vector<Segment_2> segVec;
-    // // for(const Segment_2& e  : allPolys[i].edges()){
-    // //   segVec.push_back(e);
-    // // }
-    // vecAllPolys.push_back(segVec);
-
+    notColpoints+=allPolys[i].size();
     COUT<<"Polygon at depth: "<< i <<" " << allPolys[i]<<ENDL;
   }
 
-  // std::cout<<"ALL POLYGONS AS VECTOR"<<ENDL;
-  // for(int i =0; i<vecAllPolys.size();i++){
-  //   for(int j=0;j<vecAllPolys[i].size();j++){
-  //     COUT<<"("<<vecAllPolys[i][j][0]<<")"<<" ";
-  //   }
-    
-  //   COUT<<ENDL;
-  // }
 
-
-  COUT<<ENDL;
-  // for(const Point_2& p : allPolys[0].vertices()){
-  //   std::cout << "(" << p << ") ";
-  // }
-  COUT<<ENDL;
-
-  
   // Print out all the Convex Hulls
   // for(int i=0;i<allPolys.size();i++){
   //     CGAL::IO::write_polygon_WKT(os,allPolys[i]);
@@ -163,6 +139,9 @@ Polygon_2 OnionAlgo::generatePolygon(){
     COUT<<"Vertex i(m) is "<<" "<<mVertex<<ENDL;
     COUT<<"Vertex i(m+1) is "<<" "<<mVertexPlus<<ENDL;
 
+
+
+
     if(i+1!=allPolys.size()){
       Point_2 closestK=Point_2(-1111,-1111);
       int indexClosestK=-1;
@@ -178,6 +157,10 @@ Polygon_2 OnionAlgo::generatePolygon(){
           closestK=vert;
           indexClosestK=j;
         }
+      }
+
+      if(pointInPolygon(mVertex,finalPoly)){
+        COUT<<"OOOFFFFF"<<ENDL;
       }
 
       int indexLamda=nextIndex(indexClosestK,allPolys[i+1]);
@@ -399,8 +382,15 @@ Polygon_2 OnionAlgo::generatePolygon(){
             for(int ind=0;ind<=indexLamda;ind++){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             } 
-          }else if(indexClosestK>indexLamda && indexLamda==0){
+          }else if(indexClosestK>indexLamda && indexLamda==0 && indexClosestK==allPolys[i+1].size()-1){
             for(int ind=indexClosestK;ind>=0;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
+          }else if(indexClosestK>indexLamda && indexLamda==0 && indexClosestK!=allPolys[i+1].size()-1){
+            for(int ind=indexClosestK;ind<allPolys[i+1].size();ind++){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
+            for(int ind=0;ind<=indexLamda;ind++){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
           }else if(indexClosestK<indexLamda && indexLamda==allPolys[i+1].size()-1 && indexClosestK==0){
@@ -470,27 +460,33 @@ Polygon_2 OnionAlgo::generatePolygon(){
           }else if(indexClosestK<indexLamda && indexClosestK==0 && indexLamda!=allPolys[i+1].size()-1){
                         COUT<<"STUPID CONDITION 4"<<ENDL;
             for(int ind=indexLamda;ind<allPolys[i+1].size();ind++){
-              toBeAdded.push_back(allPolys[i+1].vertex(ind));              
+
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));  
+
+            
             }
             for(int ind=0;ind<=indexClosestK;ind++){
-              toBeAdded.push_back(allPolys[i+1].vertex(ind));              
+
+              toBeAdded.push_back(allPolys[i+1].vertex(ind)); 
+
+             
             }                        
           }
           else{
-                        COUT<<"STUPID CONDITION 5"<<ENDL;
+            COUT<<"STUPID CONDITION 5"<<ENDL;
             for(int ind=indexLamda;ind<allPolys[i+1].size();ind++){
+
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
+
             }
             for(int ind=0;ind<=indexClosestK;ind++){
-              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
             } 
           }  
         }
-        
-        
+    
         finalPoly.insert(veit,toBeAdded.begin(),toBeAdded.end());
 
-        // COUT<<finalPoly<<ENDL;
       }
 
       int initK=indexClosestK;
@@ -521,10 +517,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
       COUT<<"NEW INDEX K IS "<<indexClosestK<<ENDL;
       COUT<<"NEW INDEX L IS "<<indexLamda<<ENDL;
-
-      // if(i==check){
-      //   CGAL::IO::write_polygon_WKT(os,finalPoly);
-      // } 
 
       int kInPoly=0;
       int lamInPoly=0;
@@ -596,7 +588,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
             finalPoly.insert(veit,points[j]);
           }else{
             // vres to kontinetero simeio sto teleytaio convexHull
-                      COUT<<"SUCKS to be me AGAIN"<<ENDL;
+            COUT<<"SUCKS to be me AGAIN"<<ENDL;
             dist=INFINITY;
             for(int k=0;k<allPolys[i].size();k++){
               Point_2 vert=allPolys[i].vertex(k);
@@ -650,15 +642,15 @@ Polygon_2 OnionAlgo::generatePolygon(){
   }
   CGAL::IO::write_polygon_WKT(os,finalPoly);
 
-  if( finalPoly.size()==initPointsSize && finalPoly.is_simple() ){
+  if( finalPoly.size()==notColpoints && finalPoly.is_simple() ){
     COUT<<"final polygon of "<< initPointsSize<<" points" <<" IS OK"<<ENDL;
   }else{
     COUT<<"final polygon of "<< initPointsSize<<" points" <<" IS NOT OK"<<ENDL;
     if(!finalPoly.is_simple()){
       COUT<<"IT IS NOT SIMPLE"<<ENDL;      
     }
-    if(finalPoly.size()!=initPointsSize){
-      COUT<<"IT IS MISSING POINTS"<<ENDL;      
+    if(finalPoly.size()!=notColpoints){
+      COUT<<"IT HAS "<<finalPoly.size() -notColpoints <<" MISSING POINTS"<<ENDL;      
     }    
   }
 
@@ -666,6 +658,8 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
   COUT<<"AREA IS "<<area<<ENDL;
 
+  COUT<<"COLLINEAR POINTS REMOVED: "<<initPointsSize-notColpoints<<ENDL;
+  COUT<<initPointsSize<<" (0-"<<allPolys[0].size()-1<<") "<<ENDL; // used in debugging
   COUT<<"INITIAL m was "<<initialM<<ENDL;
 
   return finalPoly;
@@ -692,6 +686,18 @@ bool isVisible(Segment_2 initialEdge, Polygon_2 poly)
 
 }
 
+
+// Checks whether a Point_2 <point> lies on the boundary of Polygon_2 <poly>
+
+bool pointInPolygon(Point_2 point,Polygon_2 poly){
+  for(auto eit=poly.edges_begin();eit!=poly.edges_end() ; eit++){
+    Segment_2 edge=*eit;
+    if(CGAL::collinear(edge[0],point,edge[1]) ){
+      return true;
+    }
+  }
+  return false;
+}
 
 // returns the index after <index> in Polygon_2 <poly>
 int nextIndex(int index, Polygon_2 poly){
