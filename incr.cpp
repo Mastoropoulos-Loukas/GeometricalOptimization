@@ -220,13 +220,11 @@ return v;
 PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
 
-  Segment_2 lright;
-  Segment_2 midpoint;
-  Segment_2 lleft;
+  
   PurpleEdges res;
   int x;
   int y;
-  int count=0;
+
   bool test;
 
   for (auto vi = hull.edges_begin()+pos+1; vi != hull.edges_begin(); --vi){
@@ -260,17 +258,13 @@ PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
 std::vector<Segment_2> CheckPol(Polygon_2 poly,Point p,int pos,PurpleEdges edges){
 
-  Segment_2 lright;
-  Segment_2 midpoint;
-  Segment_2 lleft;
+  
   std::vector<Segment_2> res;
   double x=0;
   double y=0;
-  int count=0;
   bool test;
-  int i=0;
-  int j=0;
-  for (auto vi = poly.edges_begin()+pos; vi != poly.edges_begin(); --vi,++i){
+
+  for (auto vi = poly.edges_begin()+pos; vi != poly.edges_begin(); --vi){
 
 
     
@@ -284,7 +278,7 @@ std::vector<Segment_2> CheckPol(Polygon_2 poly,Point p,int pos,PurpleEdges edges
       break;
     }
 
-  for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_end(); ++vi,++j){
+  for (auto vi = poly.edges_begin()+pos+1; vi != poly.edges_end(); ++vi){
 
 
 
