@@ -7,6 +7,7 @@
 !ConvexHullAlgo.cpp
 !ConvexHullAlgo.h
 !README.md
+!docs
 !docs/*
 !shared.h
 !onion.cpp

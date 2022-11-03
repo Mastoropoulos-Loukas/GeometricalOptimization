@@ -128,11 +128,14 @@
 Θάνος Βάιος   &nbsp;  &nbsp;  1115 2018 00016 <br>
 
 ## Incremental
-![incremental pdf](./docs/IncrAlgo.pdf "desc")
+Στον φάκελο docs το αρχείο IncrAlgo.pdf περιγράφει αναλυτικά τον αυξητικό αλγόριθμο (incremental)
 <br>
 
 ## Convex Hull
 
+Στον φάκελο docs το αρχείο ConvexHull.pdf περιγράφει αναλυτικά τον αλγόριθμο convex hull
 <br>
 
 ## Onion
+Στον φάκελο docs το αρχείο ConvexHull.pdf περιγράφει αναλυτικά τον αλγόριθμο onion
+<br>
