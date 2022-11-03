@@ -32,9 +32,7 @@ std::vector<Segment_2> CheckPol(Polygon_2 ,Point ,int ,PurpleEdges);
 PurpleEdges CheckHull(Polygon_2 ,Point ,int );
 
 //function that finds the position of a visible edge and returns it.
-//I wanted to return the position of the edge in CheckPol but i coudnt make it work.This increased the run time by a bit.Instead of having
-// a struct of a visible edge and its position ,which would make a loop here redundant,i need to find it in the polygon,which is adding an O(n) for every
-//point.
+
 int Edgeselection(Polygon_2 poly,Point p,std::vector<Segment_2> segs,int mode){
   int i=0;
   int pos=0;
