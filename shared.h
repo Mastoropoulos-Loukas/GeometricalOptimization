@@ -30,6 +30,8 @@ struct ArgFlags{
     Initialization initialization;
     int onionInitialization;
 
+    bool showPick;
+    bool showShapes;
     bool error;
     std::string errorMessage;
 };

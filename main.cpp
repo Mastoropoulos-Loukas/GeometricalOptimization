@@ -83,19 +83,23 @@ int main(int argc, char **argv)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
     //write shapes
-    std::ofstream dump("polygon.wkt"), pointDump("points.wkt"), hullDump("hull.wkt");
-    CGAL::IO::write_polygon_WKT(
-        dump,
-        p
-    );
-    CGAL::IO::write_multi_point_WKT(
-        pointDump,
-        list
-    );
-    CGAL::IO::write_polygon_WKT(
-        hullDump,
-        chp
-    );
+    if(argFlags.showShapes)
+    {
+        std::ofstream dump("polygon.wkt"), pointDump("points.wkt"), hullDump("hull.wkt");
+        CGAL::IO::write_polygon_WKT(
+            dump,
+            p
+        );
+        CGAL::IO::write_multi_point_WKT(
+            pointDump,
+            list
+        );
+        CGAL::IO::write_polygon_WKT(
+            hullDump,
+            chp
+        );
+    }
+    
 
     //write output
     writePolygonToFile(argFlags.outputFile, p, argFlags, convexHullArea, duration);
@@ -106,6 +110,8 @@ int main(int argc, char **argv)
 void handleArgs(ArgFlags& argFlags, int& argc, char**& argv)
 {
     int waitingForArg = 0;
+    argFlags.showPick = true;
+    argFlags.showShapes = false;
     bool waitingInput = true;
     bool waitingOutput = true;
     bool waitingAlgorithm = true;
@@ -127,6 +133,10 @@ void handleArgs(ArgFlags& argFlags, int& argc, char**& argv)
                     waitingForArg = 5;
                 else if (!strcmp(arg, "-onion_initialization"))
                     waitingForArg = 6;
+                else if(!strcmp(arg, "-hide_pick"))
+                    argFlags.showPick = false;
+                else if(!strcmp(arg, "-show_shapes"))
+                    argFlags.showShapes = true;
                 break;
             case 1:
                 argFlags.inputFile = string(arg);
@@ -246,7 +256,7 @@ void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, i
 
     double polygonArea =  abs(polygon.area());
     outfile << "area: " << polygonArea << endl;
-    // outfile << "pick_calculated_area: " << Pick(polygon) << endl;
+    if(argFlags.showPick) outfile << "pick_calculated_area: " << Pick(polygon) << endl;
     outfile << "ratio: " << convexHullArea / polygonArea << endl;
     outfile << "construction time: " << duration.count() << endl;
     return;
