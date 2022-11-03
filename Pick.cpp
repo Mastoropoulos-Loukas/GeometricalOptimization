@@ -1,7 +1,7 @@
 #include "Pick.h"
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_2 Point;
-typedef CGAL::Polygon_2<K>                                  Polygon_2;
+typedef CGAL::Polygon_2<K> Polygon_2;
  
 #include <CGAL/IO/WKT.h>
 struct points{
@@ -57,10 +57,7 @@ double Pick(Polygon_2 poly){
     a+=add.a;
     b+=add.b;
   }
-
-
-
-  
+ 
 }
 
   double temp=pick(a,b);

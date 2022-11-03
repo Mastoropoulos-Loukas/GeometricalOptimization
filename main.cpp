@@ -14,7 +14,7 @@ using std::endl;
 using std::string;
 using std::ifstream;
 
-void getPointsFromFile(string filepath, int& size, PointList& points, int& convexHullArea);
+void getPointsFromFile(string filepath, int& size, PointList& points, long& convexHullArea);
 void handleArgs(ArgFlags& argFlags, int& argc, char**& argv);
 void writePolygonToFile(string filepath, Polygon_2 polygon, ArgFlags argFlags, int convexHullArea, std::chrono::milliseconds duration);
 string getAlgorithmString(ArgFlags argFlags);
@@ -48,7 +48,8 @@ int main(int argc, char **argv)
     }
 
     //get input
-    int size, convexHullArea;
+    long convexHullArea; // long because in some files an int is not enoug e.g uniform-0000800-1
+    int size;
     PointList list, result;
     getPointsFromFile(argFlags.inputFile, size, list, convexHullArea);
 
@@ -193,7 +194,7 @@ void handleArgs(ArgFlags& argFlags, int& argc, char**& argv)
     argFlags.error = false;
 }
 
-void getPointsFromFile(string filepath, int& size, PointList& points, int& convexHullArea)
+void getPointsFromFile(string filepath, int& size, PointList& points, long& convexHullArea)
 {
     //get number of lines
     ifstream infile(filepath);
@@ -214,7 +215,7 @@ void getPointsFromFile(string filepath, int& size, PointList& points, int& conve
     getline(infile,line);
 
     //get convex hull area from second line
-    convexHullArea = stoi(
+    convexHullArea = stol(   // we use stol instead of stoi because stoi return an integer and stol return a long
         line.substr(
             line.find("{\"area\": \"") + 10, 
             line.find("\"}"))

@@ -7,10 +7,6 @@
 #include "shared.h"
 #include"Pick.h"
 
-#include "PolygonGenerator.h"
-
-
-
 
 class IncAlgo : public PolygonGenerator{
 private:

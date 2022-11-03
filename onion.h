@@ -41,6 +41,14 @@ public:
 
 };
 
-bool isVisible(Segment_2 initialEdge, Polygon_2 poly);
+bool isVisible(Segment_2& initialEdge, Polygon_2& poly);
+bool pointInPolygon(Point_2& point,Polygon_2& poly);
+
+Point_2 getClosestK(Point_2& pointM,int& indexClosestK ,Polygon_2& poly);
+Polygon_2::Vertex_iterator getVertexIt(Point_2& vertex,Polygon_2& poly);
+
+
+int nextIndex(int&,Polygon_2&);
+int previousIndex(int&,Polygon_2&);
 
 #endif

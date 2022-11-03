@@ -3,12 +3,6 @@
 #include <time.h>
 
 
-bool pointInPolygon(Point_2 point,Polygon_2 poly);
-Point_2 getClosestK(Point_2 pointM,int& indexClosestK ,Polygon_2 poly);
-
-int nextIndex(int,Polygon_2);
-int previousIndex(int,Polygon_2);
-
 // Constructor
 OnionAlgo::OnionAlgo(PointList& list, int option) : PolygonGenerator(list){this->option=option;};
 
@@ -108,9 +102,11 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
     Point_2 mVertex;
     Point_2 mVertexPlus;
+    Point_2 mVertexMinus;
 
     mVertex = finalPoly.vertex(m);
     mVertexPlus=finalPoly.vertex(mPlus);
+    mVertexMinus=finalPoly.vertex(mMinus);
 
     // if we are not at the lowest level
     if(i+1!=allPolys.size()){
@@ -118,9 +114,39 @@ Polygon_2 OnionAlgo::generatePolygon(){
       Point_2 closestK=getClosestK(mVertex,indexClosestK,allPolys[i+1]);
 
       int indexLamda=nextIndex(indexClosestK,allPolys[i+1]);
+      int indexBeforeK=previousIndex(indexClosestK,allPolys[i+1]);      
       
-      Point_2 lamda=allPolys[i+1].vertex(indexLamda);
+      Point_2 lamda=allPolys[i+1].vertex(indexLamda);  
+      Point_2 BeforeKVertex=allPolys[i+1].vertex(indexBeforeK);  
 
+      Segment_2 mToK(mVertex,closestK);
+      Segment_2 mPlusToLamda(mVertexPlus,lamda);
+      Segment_2 mMinusToKMinus(mVertexMinus,BeforeKVertex);
+
+      // we have to ensure that k is visible from m
+      while(!isVisible(mToK,allPolys[i+1])){
+        mMinus=m;
+        mVertexMinus=mVertex;
+
+        m=nextIndex(m,finalPoly);
+        mVertex=finalPoly.vertex(m);
+        mPlus=nextIndex(m,finalPoly);
+        mVertexPlus=finalPoly.vertex(mPlus);
+        
+        
+        closestK=getClosestK(mVertex,indexClosestK,allPolys[i+1]);
+        indexLamda=nextIndex(indexClosestK,allPolys[i+1]);
+        indexBeforeK=previousIndex(indexClosestK,allPolys[i+1]);
+
+        lamda=allPolys[i+1].vertex(indexLamda);
+        BeforeKVertex=allPolys[i+1].vertex(indexBeforeK);
+
+        mToK=Segment_2(mVertex,closestK);
+        mPlusToLamda=Segment_2(mVertexPlus,lamda);
+        mMinusToKMinus=Segment_2(mVertexMinus,BeforeKVertex);
+      }
+
+      
       Segment_2 edgeInPoly(mVertexPlus,lamda);
  
       // we check whether lamda is visible from m+1
@@ -147,6 +173,10 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
         lamda=allPolys[i+1].vertex(indexLamda);
 
+        int indexKMinus=previousIndex(indexClosestK,allPolys[i+1]);
+        Point_2 kMinusVertex=allPolys[i+1].vertex(indexKMinus);
+        Segment_2 kMinusMplus(mVertexPlus,kMinusVertex);
+
         newMPlusLamda=Segment_2(mVertexPlus,lamda);
         // There is a chance that lamda is not visble from neither m-1 nor m+1.Thus we have to find a new m and repeat the above process
         while(!isVisible(newMPlusLamda,allPolys[i+1])){
@@ -159,7 +189,8 @@ Polygon_2 OnionAlgo::generatePolygon(){
           
           closestK=getClosestK(mVertex,indexClosestK,allPolys[i+1]);
           indexLamda=nextIndex(indexClosestK,allPolys[i+1]);
-          
+          lamda=allPolys[i+1].vertex(indexLamda);
+
           newMPlusLamda=Segment_2(mVertexPlus,lamda);
           
           if(!isVisible(newMPlusLamda,allPolys[i+1])){
@@ -183,7 +214,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
             lamda=allPolys[i+1].vertex(indexLamda);
             newMPlusLamda=Segment_2(mVertexPlus,lamda);
           }
-
         }
       }
 
@@ -199,26 +229,13 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
       if(finalPoly.size()==allPolys[0].size()){
         
+        // we find where we are going to place the new points(aka before which vertex, m or mPlus)
         auto veit=finalPoly.vertices_begin();
         
-        // we find where we are going to place the new points(aka before which vertex, m or mPlus)
         if(mPlus>m || (mPlus==0 && m==finalPoly.size()-1)){
-
-          while(*veit!=mVertexPlus){
-            if(veit+1!=finalPoly.vertices_end()){
-              veit++;
-            }else{
-              veit=finalPoly.vertices_begin();
-            }
-          }
+          veit=getVertexIt(mVertexPlus,finalPoly);
         }else{
-          while(*veit!=mVertex){
-            if(veit+1!=finalPoly.vertices_end()){
-              veit++;
-            }else{
-              veit=finalPoly.vertices_begin();
-            }
-          }
+          veit=getVertexIt(mVertex,finalPoly);          
         }
         
         std::vector<Point_2> toBeAdded;
@@ -233,26 +250,49 @@ Polygon_2 OnionAlgo::generatePolygon(){
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-          }      
-        }else if(m<mPlus && mPlus!=0 && m==0){
-          if(indexClosestK==allPolys[i+1].size()-1){
+          }
+        }else if(m<mPlus && mPlus==finalPoly.size()-1 && m==0){
+          if((indexClosestK<indexLamda ) || 
+             ( indexClosestK==allPolys[i+1].size()-1 && indexLamda==0)){          
+            
+            for(int ind=indexClosestK;ind>=0;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
+            for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }              
+          }else if((indexClosestK>indexLamda ) || 
+                   (indexClosestK==allPolys[i+1].size()-1 && indexLamda==0) ){
+            for(int ind=indexLamda;ind>=0;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
+            for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
+          }
+        }else if(m<mPlus && mPlus!=0 && mPlus==finalPoly.size()-1 && m==0){
+          if(indexClosestK==allPolys[i+1].size()-1 && indexLamda==0){
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }            
+          }else if((indexClosestK>indexLamda ) ){
+            for(int ind=indexLamda;ind>=0;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
+            for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            }
           }else{
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }            
           }
-
         }else if(m>mPlus && mPlus!=0 && m!=0){
           if(indexClosestK==0){
             for(int ind=indexLamda;ind>=0;ind--){
@@ -260,57 +300,76 @@ Polygon_2 OnionAlgo::generatePolygon(){
             }            
           }
           if((indexClosestK!=0 && indexLamda!=allPolys[i+1].size()-1) || (indexClosestK!=allPolys[i+1].size()-1 && indexLamda!=0)){
-            if(indexClosestK>indexLamda){
+            if(indexClosestK>indexLamda && indexClosestK!=allPolys[i+1].size()-1 && indexLamda!=0){
               for(int ind=indexLamda;ind>=0;ind--){
                 toBeAdded.push_back(allPolys[i+1].vertex(ind));
               }
               for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
                 toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }             
+            }else if(indexClosestK>indexLamda && indexClosestK!=allPolys[i+1].size()-1 && indexLamda==0){
+              for(int ind=indexLamda;ind>=0;ind--){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
               }
-               
+              for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }               
+            }else if(indexClosestK>indexLamda && indexClosestK==allPolys[i+1].size()-1 && indexLamda==0){
+              for(int ind=indexLamda;ind<=indexClosestK;ind++){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }              
+            }else if(indexClosestK>indexLamda && indexClosestK==allPolys[i+1].size()-1 && indexLamda!=0){
+              for(int ind=indexLamda;ind>=0;ind--){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }
+              for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
+                toBeAdded.push_back(allPolys[i+1].vertex(ind));
+              }                
             }
           }
         }else if(m>mPlus && mPlus==0){
-          if(indexLamda==0){
+          if(indexLamda==0 && indexClosestK==allPolys[i+1].size()-1){
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));              
             }
+          }else if(indexLamda==0 && indexClosestK!=allPolys[i+1].size()-1){
+             for(int ind=indexLamda;ind>=0;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));              
+            }
+            for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));              
+            }            
           }else if(indexClosestK>indexLamda && indexLamda!=0){
             for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-          }
-          else{
-
-
+          }else{
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));              
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
-              COUT<<"ind is "<<ind<<ENDL;
               toBeAdded.push_back(allPolys[i+1].vertex(ind));              
             }
           }
-        }
-        else{
-          if(indexLamda<indexClosestK){
+        }else{
+          if(indexLamda<indexClosestK && indexLamda!=0 && indexClosestK!=allPolys[i+1].size()-1){
             for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-            
             for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }            
+          }else if(indexLamda<indexClosestK && indexLamda==0 && indexClosestK==allPolys[i+1].size()-1){
+            for(int ind=indexClosestK;ind>=0;ind--){
+              toBeAdded.push_back(allPolys[i+1].vertex(ind));
+            } 
           }else{
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
@@ -325,30 +384,16 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
 
       }else{
-        Polygon_2 newPoly;
-
         auto veit=finalPoly.vertices_begin();
 
         std::vector<Point_2> toBeAdded;
         
         // we find where we are going to place the new points(aka before which vertex, m or mPlus)
         if(mPlus>m){
-          while(*veit!=mVertexPlus){
-            if(veit+1!=finalPoly.vertices_end()){
-              veit++;
-            }else{
-              veit=finalPoly.vertices_begin();
-            }
-          }
+          veit=getVertexIt(mVertexPlus,finalPoly);
         }else{
-          while(*veit!=mVertex){
-            if(veit+1!=finalPoly.vertices_end()){
-              veit++;
-            }else{
-              veit=finalPoly.vertices_begin();
-            }
-          }
-        }
+          veit=getVertexIt(mVertex,finalPoly);
+        }    
         
         // The order which the new points are being placed varies based on m,mPlus,k,lamda
         if(m<mPlus){
@@ -356,7 +401,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
             for(int ind=indexClosestK;ind<allPolys[i+1].size();ind++){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=0;ind<=indexLamda;ind++){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             } 
@@ -386,7 +430,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }           
@@ -394,28 +437,23 @@ Polygon_2 OnionAlgo::generatePolygon(){
             for(int ind=indexClosestK;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexLamda;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
           }
-
         }else{
           if(indexClosestK>indexLamda && indexLamda!=0){
             for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
             for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
-
           }else if(indexLamda==0){
             if(indexClosestK!=allPolys[i+1].size()-1){
               for(int ind=indexLamda;ind>=0;ind--){
                 toBeAdded.push_back(allPolys[i+1].vertex(ind));
               }
-
               for(int ind=allPolys[i+1].size()-1;ind>=indexClosestK;ind--){
                 toBeAdded.push_back(allPolys[i+1].vertex(ind));
               }                        
@@ -424,7 +462,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
                 toBeAdded.push_back(allPolys[i+1].vertex(ind));              
               }
             }
-
           }else if(indexClosestK<indexLamda && indexClosestK==0 && indexLamda==allPolys[i+1].size()-1){
             for(int ind=indexLamda;ind>=0;ind--){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));              
@@ -434,10 +471,9 @@ Polygon_2 OnionAlgo::generatePolygon(){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));  
             }
             for(int ind=0;ind<=indexClosestK;ind++){
-              toBeAdded.push_back(allPolys[i+1].vertex(ind));  
+              toBeAdded.push_back(allPolys[i+1].vertex(ind)); 
             }                        
-          }
-          else{
+          }else{
             for(int ind=indexLamda;ind<allPolys[i+1].size();ind++){
               toBeAdded.push_back(allPolys[i+1].vertex(ind));
             }
@@ -446,9 +482,8 @@ Polygon_2 OnionAlgo::generatePolygon(){
             } 
           }  
         }
-    
+           
         finalPoly.insert(veit,toBeAdded.begin(),toBeAdded.end());
-
       }
 
       int initK=indexClosestK;
@@ -513,40 +548,44 @@ Polygon_2 OnionAlgo::generatePolygon(){
         Point_2 closePoint=getClosestK(points[j],indexClosePoint,finalPoly); // we find the closest vertex of our "merged" polygon
 
         auto veit=finalPoly.vertices_begin();
-        
-        while(*veit!=closePoint){
-          if(veit+1!=finalPoly.vertices_end()){
-            veit++;
-          }else{
-            veit=finalPoly.vertices_begin();
-          }
-
-        }
+        veit=getVertexIt(closePoint,finalPoly);
 
         Segment_2 pointLine(*(veit+1),points[j]);
         // if the point is visible from the next point of the above closest point, we place it in front of its closest point
         if(isVisible(pointLine,finalPoly)){
+          Segment_2 pointLine2(*veit,points[j]);
+          while(!isVisible(pointLine2,finalPoly)){
+            if(veit!=finalPoly.vertices_end()){
+              veit++;
+            }else{
+              veit=finalPoly.vertices_begin();
+            }
+            pointLine2=Segment_2(*veit,points[j]);
+          }
           finalPoly.insert(veit+1,points[j]);
         }else{
           Segment_2 lineFinalPoly(*(veit),points[j]);
-          // if the point is visible from its closest point, we place it before it           
+          // if the point is visible from its closest point, we will try to place it before it if we can          
           if(isVisible(lineFinalPoly,finalPoly)){
+            lineFinalPoly=Segment_2(*(veit-1),points[j]);
+            
+            // We find a point that we can add before(aka its previous point should be visible) 
+            while(!isVisible(lineFinalPoly,finalPoly)){
+              closePoint=getClosestK(points[j],indexClosePoint,allPolys[i]);
+              veit=getVertexIt(closePoint,finalPoly);
+              lineFinalPoly=Segment_2(*(veit-1),points[j]);
+            }
+
             finalPoly.insert(veit,points[j]);
           }else{
             // we have to find the closest point in the last convex hull,which is certainly visible
             closePoint=getClosestK(points[j],indexClosePoint,allPolys[i]);
             
             auto veit2=finalPoly.vertices_begin();
-            while(*veit2!=closePoint){
-              if(veit2+1!=finalPoly.vertices_end()){
-                veit2++;
-              }else{
-                veit2=finalPoly.vertices_begin();
-              }
-
-            }
+            veit2=getVertexIt(closePoint,finalPoly);
 
             Segment_2 pointLine2(*(veit2+1),points[j]);
+            
             // if the next from the closest is visible, place it after the closest
             if(isVisible(pointLine2,finalPoly)){
               finalPoly.insert(veit2+1,points[j]); 
@@ -576,7 +615,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
 }
 
 // Practically checks whether <initialEdge> intersects with <poly> in more than 2 spots since initialEdge[1] is a vertex of <poly>
-bool isVisible(Segment_2 initialEdge, Polygon_2 poly)
+bool isVisible(Segment_2& initialEdge, Polygon_2& poly)
 {
     int timesInter=0;
     for(auto eit=poly.edges_begin();eit!=poly.edges_end();eit++){
@@ -598,7 +637,7 @@ bool isVisible(Segment_2 initialEdge, Polygon_2 poly)
 
 
 // Finds the closest Point to PointM in poly. Returns its position in indexClosestK
-Point_2 getClosestK(Point_2 pointM, int& indexClosestK ,Polygon_2 poly){
+Point_2 getClosestK(Point_2& pointM, int& indexClosestK ,Polygon_2& poly){
     
   Point_2 closestK=Point_2(-1111,-1111);
   int indexK=-1;
@@ -621,7 +660,7 @@ Point_2 getClosestK(Point_2 pointM, int& indexClosestK ,Polygon_2 poly){
 }
 
 // Checks whether a Point_2 <point> lies on the boundary of Polygon_2 <poly>
-bool pointInPolygon(Point_2 point,Polygon_2 poly){
+bool pointInPolygon(Point_2& point,Polygon_2& poly){
   for(auto eit=poly.edges_begin();eit!=poly.edges_end() ; eit++){
     Segment_2 edge=*eit;
     if(CGAL::collinear(edge[0],point,edge[1]) ){
@@ -631,8 +670,23 @@ bool pointInPolygon(Point_2 point,Polygon_2 poly){
   return false;
 }
 
+
+Polygon_2::Vertex_iterator getVertexIt(Point_2& vertex,Polygon_2& poly){
+  auto veit=poly.vertices_begin();
+    
+  while(*veit!=vertex){
+    if(veit+1!=poly.vertices_end()){
+      veit++;
+    }else{
+      veit=poly.vertices_begin();
+    }
+  }
+
+  return veit;
+}
+
 // returns the index after <index> in Polygon_2 <poly>
-int nextIndex(int index, Polygon_2 poly){
+int nextIndex(int& index, Polygon_2& poly){
   int next=0;
   
   if(index!=poly.size()-1){
@@ -645,7 +699,7 @@ int nextIndex(int index, Polygon_2 poly){
 }
 
 // returns the index before <index> in Polygon_2 <poly>
-int previousIndex(int index, Polygon_2 poly){
+int previousIndex(int& index, Polygon_2& poly){
   int previous=0;
   
   if(index!=0){
