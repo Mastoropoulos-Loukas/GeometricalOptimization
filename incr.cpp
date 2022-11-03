@@ -10,7 +10,7 @@ int inter(CGAL::Segment_2<Kernel>, CGAL::Segment_2<Kernel> , CGAL::Point_2<Kerne
 bool isReplaceable(Point_2, Segment_2, Polygon_2&);
 
 std::vector<Point> SortPoints(std::string ,std::vector<Point>);
-
+//struct to give the std::sort function so that it sorts based on y instead.
 struct {
       bool operator()(Point a, Point b) const { return a.y() < b.y(); }
     } customLess;
@@ -18,6 +18,7 @@ struct {
 struct {
       bool operator()(Point a, Point b) const { return a.y() > b.y(); }
     } customMore;
+
 struct PurpleEdges{
 
   Point x;
@@ -30,7 +31,10 @@ std::vector<Segment_2> CheckPol(Polygon_2 ,Point ,int ,PurpleEdges);
 
 PurpleEdges CheckHull(Polygon_2 ,Point ,int );
 
-
+//function that finds the position of a visible edge and returns it.
+//I wanted to return the position of the edge in CheckPol but i coudnt make it work.This increased the run time by a bit.Instead of having
+// a struct of a visible edge and its position ,which would make a loop here redundant,i need to find it in the polygon,which is adding an O(n) for every
+//point.
 int Edgeselection(Polygon_2 poly,Point p,std::vector<Segment_2> segs,int mode){
   int i=0;
   int pos=0;
@@ -133,7 +137,7 @@ else   if(argFlags.initialization==3)
   poly.push_back(vec[0]);
   poly.push_back(vec[1]);
   poly.push_back(vec[2]);
- 
+ //insert the first 3 points in the polygon.
 
   if(!poly.is_simple()){
   
@@ -146,6 +150,7 @@ else   if(argFlags.initialization==3)
   int select=0;
   std::vector<Segment_2> points;
   int pos=1;
+  //for every other point ,find the purple edges,then the visible edges in the polygon between them and insert one to the polygon based on the algo.
   for(auto v1=vec.begin()+3;v1!=vec.end();++v1,++i){
     CGAL::convex_hull_2( poly.begin(), poly.end() ,std::back_inserter(hull));
     edges=CheckHull(hull,v1[0],pos);
@@ -176,7 +181,7 @@ else   if(argFlags.initialization==3)
 
 
 }
-//intersection between a segment of a polygon and the line 
+//intersection between a segment of a polygon and the line ,although its not used because its slower than isReplaceable.
 int inter(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point_2<Kernel> p)
 {
   int count=0;
@@ -195,13 +200,9 @@ int inter(CGAL::Segment_2<Kernel> seg, CGAL::Segment_2<Kernel> line, CGAL::Point
   return count;
 }
 
-bool replace(CGAL::Segment_2<Kernel> seg, Polygon_2 poly, CGAL::Point_2<Kernel> p)
-{
- return (isReplaceable(p, seg, poly));
-}
 
 
-
+//sort the points
 std::vector<Point> SortPoints(std::string mode,std::vector<Point> v){
 
 if(mode=="2a")
@@ -216,7 +217,7 @@ else if (mode =="1b")
 return v;
 }
 
-
+//find the purple edges of a polygon by checking the convex hull.Return them.
 PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
 
 
@@ -255,7 +256,7 @@ PurpleEdges CheckHull(Polygon_2 hull,Point p,int pos){
     return res;
 }
 
-
+//Check between the purple edges and return a list of all the visible edges. 
 std::vector<Segment_2> CheckPol(Polygon_2 poly,Point p,int pos,PurpleEdges edges){
 
   
