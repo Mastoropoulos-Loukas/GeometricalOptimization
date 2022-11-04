@@ -14,16 +14,14 @@ Polygon_2 OnionAlgo::generatePolygon(){
   std::vector<Point_2> points=list;
   std::vector<Polygon_2> allPolys;
 
-  int initPointsSize=points.size();
-  int notColpoints=0;
-
   // We iterate over the points,creating convex Hulls, until there are less than 3  points left
   while(points.size()>2){
     if(points.size()==3 && CGAL::collinear(points[0],points[1],points[2])){
       std::vector<Point_2>::iterator it = points.begin();
       points.erase(it+1); //Check for potential trouble
-      initPointsSize--;
     }else{
+
+      // the part that finds the convexHull of point set was taken verbatim from CGAL's user's manual about convexHulls
       std::vector<std::size_t> indices(points.size()), out;
       std::iota(indices.begin(), indices.end(),0);
       CGAL::convex_hull_2(indices.begin(), indices.end(), std::back_inserter(out),
@@ -53,18 +51,6 @@ Polygon_2 OnionAlgo::generatePolygon(){
 
   }
   
-  // FINAL Points LEFT
-  for(int i =0; i<points.size();i++){
-    notColpoints++;
-  }
-  COUT<<ENDL;
-
-// All polygons/convexHulls
-  for(int i =0; i<allPolys.size();i++){
-    notColpoints+=allPolys[i].size();
-  }
-
-
   int criterion=this->option; // criterion that defines the value of m
   int m=0;
 
@@ -124,6 +110,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
       Segment_2 mMinusToKMinus(mVertexMinus,BeforeKVertex);
 
       // we have to ensure that k is visible from m
+      // If not, we will have to choose a different m and therefore a different k(along with a different mPlus and lamda)
       while(!isVisible(mToK,allPolys[i+1])){
         mMinus=m;
         mVertexMinus=mVertex;
@@ -151,7 +138,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
  
       // we check whether lamda is visible from m+1
       if(isVisible(edgeInPoly,allPolys[i+1])){
-      }else{
+      }else{ // if not, based on the relation between m and mPlus(which is "infront") we have to either increase or decrease lamda
         int initM=m;
         int initMPlus=mPlus;       
         
@@ -178,7 +165,9 @@ Polygon_2 OnionAlgo::generatePolygon(){
         Segment_2 kMinusMplus(mVertexPlus,kMinusVertex);
 
         newMPlusLamda=Segment_2(mVertexPlus,lamda);
-        // There is a chance that lamda is not visble from neither m-1 nor m+1.Thus we have to find a new m and repeat the above process
+       
+        // There is a chance that the new lamda is not visble from neither m-1 nor m+1.
+        //Thus we have to find a new m and repeat the above process
         while(!isVisible(newMPlusLamda,allPolys[i+1])){
 
           m=nextIndex(m,finalPoly);
@@ -238,7 +227,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
           veit=getVertexIt(mVertex,finalPoly);          
         }
         
-        std::vector<Point_2> toBeAdded;
+        std::vector<Point_2> toBeAdded; // the vector that contains the points to be added
 
         // The order which the new points are being placed varies based on m,mPlus,k,lamda
         if(m<mPlus && mPlus!=0 && m!=0){
@@ -376,6 +365,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
           }
         }
 
+        // we insert the points
         if(mPlus==0){
           finalPoly.insert(veit,toBeAdded.begin(),toBeAdded.end());
         }else{
@@ -386,7 +376,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
       }else{
         auto veit=finalPoly.vertices_begin();
 
-        std::vector<Point_2> toBeAdded;
+        std::vector<Point_2> toBeAdded; // the vector that contains the points to be added
         
         // we find where we are going to place the new points(aka before which vertex, m or mPlus)
         if(mPlus>m){
@@ -482,7 +472,8 @@ Polygon_2 OnionAlgo::generatePolygon(){
             } 
           }  
         }
-           
+
+        // we insert the points           
         finalPoly.insert(veit,toBeAdded.begin(),toBeAdded.end());
       }
 
@@ -490,24 +481,23 @@ Polygon_2 OnionAlgo::generatePolygon(){
       int initLam=indexLamda;
 
       // Now we have to search for the new edge m-(m+1) which has to be different from the edge k-lamda that we used
+      // whilst being neighbours
       do{
 
         indexLamda=nextIndex(indexLamda,allPolys[i+1]);
         indexClosestK=previousIndex(indexClosestK,allPolys[i+1]);
  
+        // If a polygon's size at depth i+1 is an odd number, there is a chance that k and lamda will meet at the same vertex
+        // We force one of them to wait
         if((allPolys[i+1].size()) %2 && indexLamda==indexClosestK){
           indexLamda=nextIndex(indexLamda,allPolys[i+1]);
-        }
-        if((indexClosestK==initLam && indexClosestK==initK ||
-        indexLamda==initLam && indexLamda==initK)){
-
         }
 
       }while((indexLamda-indexClosestK!=1 && indexLamda-indexClosestK!=-1 && indexLamda-indexClosestK!=allPolys[i+1].size()-1 
         && indexLamda-indexClosestK!=-(allPolys[i+1].size()-1)) || (indexClosestK==initK && indexLamda==initLam) ||
         (indexLamda==initK && indexClosestK==initLam) );
 
-
+      // if lamda is before k, we swap them to make our lives easier
       if( indexLamda-indexClosestK==-1 ||indexLamda-indexClosestK==allPolys[i+1].size()-1){
         std::swap(indexClosestK,indexLamda);
       }
@@ -532,6 +522,7 @@ Polygon_2 OnionAlgo::generatePolygon(){
       }
       lamInPoly=help;
 
+      // we update our m and mPlus
       m=kInPoly;
       mPlus=lamInPoly;
 
@@ -551,9 +542,11 @@ Polygon_2 OnionAlgo::generatePolygon(){
         veit=getVertexIt(closePoint,finalPoly);
 
         Segment_2 pointLine(*(veit+1),points[j]);
-        // if the point is visible from the next point of the above closest point, we place it in front of its closest point
+        // if the point is visible from the next point of the above closest point
         if(isVisible(pointLine,finalPoly)){
           Segment_2 pointLine2(*veit,points[j]);
+
+          // And if it's visible from the closest point
           while(!isVisible(pointLine2,finalPoly)){
             if(veit!=finalPoly.vertices_end()){
               veit++;
@@ -562,20 +555,24 @@ Polygon_2 OnionAlgo::generatePolygon(){
             }
             pointLine2=Segment_2(*veit,points[j]);
           }
-          finalPoly.insert(veit+1,points[j]);
+          finalPoly.insert(veit+1,points[j]); // we place it after the closest point we found
         }else{
           Segment_2 lineFinalPoly(*(veit),points[j]);
-          // if the point is visible from its closest point, we will try to place it before it if we can          
+          // if the point is visible from its closest point but not visible from closest point+1, 
+          //we will try to place it before the closest point if we can          
+         
           if(isVisible(lineFinalPoly,finalPoly)){
             lineFinalPoly=Segment_2(*(veit-1),points[j]);
             
-            // We find a point that we can add before(aka its previous point should be visible) 
+            // Closest point -1 should be visible, if not we find a different closest
+            // The smart choice is to look for the points that belong both in finalPoly and in the last ConvexHull
             while(!isVisible(lineFinalPoly,finalPoly)){
               closePoint=getClosestK(points[j],indexClosePoint,allPolys[i]);
               veit=getVertexIt(closePoint,finalPoly);
               lineFinalPoly=Segment_2(*(veit-1),points[j]);
             }
 
+            // we insert the closest points
             finalPoly.insert(veit,points[j]);
           }else{
             // we have to find the closest point in the last convex hull,which is certainly visible
@@ -598,25 +595,11 @@ Polygon_2 OnionAlgo::generatePolygon(){
     }
   }
   
-  
-  if( finalPoly.size()==notColpoints && finalPoly.is_simple() ){
-    COUT<<"final polygon of "<< initPointsSize<<" points" <<" IS OK"<<ENDL;
-  }else{
-    COUT<<"final polygon of "<< initPointsSize<<" points" <<" IS NOT OK"<<ENDL;
-    if(!finalPoly.is_simple()){
-      COUT<<"IT IS NOT SIMPLE"<<ENDL;      
-    }
-    if(finalPoly.size()!=notColpoints){
-      COUT<<"IT HAS "<<finalPoly.size() -notColpoints <<" MISSING POINTS"<<ENDL;      
-    }    
-  }
-
   return finalPoly;
 }
 
 // Practically checks whether <initialEdge> intersects with <poly> in more than 2 spots since initialEdge[1] is a vertex of <poly>
-bool isVisible(Segment_2& initialEdge, Polygon_2& poly)
-{
+bool isVisible(Segment_2& initialEdge, Polygon_2& poly){
     int timesInter=0;
     for(auto eit=poly.edges_begin();eit!=poly.edges_end();eit++){
       const auto res=CGAL::intersection(initialEdge,*eit);
@@ -671,6 +654,7 @@ bool pointInPolygon(Point_2& point,Polygon_2& poly){
 }
 
 
+// For a given Point_2 <vertex> returns its position in Polygon_2 <poly> in a iterator
 Polygon_2::Vertex_iterator getVertexIt(Point_2& vertex,Polygon_2& poly){
   auto veit=poly.vertices_begin();
     
